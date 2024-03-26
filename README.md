@@ -11,7 +11,7 @@ syntax is to make it as readable as possible. The idea is that a Markdown-format
 as-is, as plain text, without looking like it’s been marked up with tags or formatting instructions.
 
 Typically, they will simply tell people to use raw HTML syntax if their wishes are too complex and/or not in line with
-Markdown’s philosophy. Markdown does not prohibit people from doing this.
+Markdown’s philosophy. Markdown parser generally does not prohibit people from doing so.
 
 Usage
 -----
