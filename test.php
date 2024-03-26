@@ -4,13 +4,17 @@ require __DIR__ . '/index.php';
 
 $content = file_get_contents(__DIR__ . '/test.md');
 
+if ($dent = (int) ($_GET['dent'] ?? 0)) {
+    $content = str_repeat(' ', $dent) . strtr($content, ["\n" => "\n" . str_repeat(' ', $dent)]);
+}
+
 echo '<div style="display:flex;flex-direction:row;gap:15px;">';
 
 echo '<div style="background:#fff;border:2px solid #080;color:#000;display:flex;flex-direction:column;font:normal normal 13px/15px monospace;gap:1px;overflow:auto;padding:1px;white-space:pre;">';
 
 foreach (x\markdown__filter\rows\encode($content) as $row) {
     [$block, $status] = $row;
-    $block = "" !== $block ? htmlspecialchars($block) : '<br>';
+    $block = "" !== trim($block, " \t") ? htmlspecialchars($block) : '<br>';
     if (0 === $status) {
         echo '<div style="border:2px solid #800;">' . $block . '</div>';
     } else {
