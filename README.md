@@ -30,13 +30,16 @@ use function x\markdown__filter as filter;
 
 require 'vendor/autoload.php';
 
-echo filter(file_get_contents('.\path\to\file.md'), static function ($part, $status) {
+$value = filter(file_get_contents('.\path\to\file.md'), static function ($part, $status) {
     if (0 === $status) {
         return $part;
     }
     // Safely convert `~~asdf~~` syntax to `<del>asdf</del>`
     return preg_replace('/~~(.*?)~~/', '<del>$1</del>', $part);
 });
+
+// You can now convert the Markdown string to HTML string using your preferred Markdown converter
+echo (new ParsedownExtra)->text($value);
 ~~~
 
 ### Using File
@@ -50,13 +53,16 @@ use function x\markdown__filter as filter;
 
 require 'index.php';
 
-echo filter(file_get_contents('.\path\to\file.md'), static function ($part, $status) {
+$value = filter(file_get_contents('.\path\to\file.md'), static function ($part, $status) {
     if (0 === $status) {
         return $part;
     }
     // Safely convert `~~asdf~~` syntax to `<del>asdf</del>`
     return preg_replace('/~~(.*?)~~/', '<del>$1</del>', $part);
 });
+
+// You can now convert the Markdown string to HTML string using your preferred Markdown converter
+echo (new ParsedownExtra)->text($value);
 ~~~
 
 Options
