@@ -1,5 +1,11 @@
 <?php
 
+namespace x {
+    function markdown__filter(?string $content, callable $fn): ?string {
+
+    }
+}
+
 namespace x\markdown__filter {
     function row(?string $content, callable $fn): ?string {
         if ("" === ($content = (string) $content)) {
