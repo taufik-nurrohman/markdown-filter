@@ -121,7 +121,7 @@ namespace x\markdown__filter\rows {
                 $prefix = \substr($row, 0, $dent);
                 $row = \substr($row, $dent);
             }
-            if ($prev = $blocks[$block][0] ?? 0) {
+            if ("" !== \trim($prev = $blocks[$block][0] ?? "")) {
                 if (($d = \strspn($prev, ' ')) < 4) {
                     $prev = \substr($prev, $d);
                 }
@@ -139,7 +139,7 @@ namespace x\markdown__filter\rows {
                         continue;
                     }
                     // Continue the code block…
-                    $blocks[$block][0] .= "\n" . $prefix . $row;
+                    $blocks[$block][0] .= "\n" . ("" !== $row ? $prefix . $row : "");
                     $blocks[$block][1] = 0;
                     continue;
                 }
@@ -152,7 +152,7 @@ namespace x\markdown__filter\rows {
                         $block += 1;
                         continue;
                     }
-                    $blocks[$block][0] .= "\n" . $prefix . $row;
+                    $blocks[$block][0] .= "\n" . ("" !== $row ? $prefix . $row : "");
                     $blocks[$block][1] = 0;
                     continue;
                 }
@@ -165,7 +165,7 @@ namespace x\markdown__filter\rows {
                         $block += 1;
                         continue;
                     }
-                    $blocks[$block][0] .= "\n" . $prefix . $row;
+                    $blocks[$block][0] .= "\n" . ("" !== $row ? $prefix . $row : "");
                     $blocks[$block][1] = 0;
                     continue;
                 }
@@ -178,7 +178,7 @@ namespace x\markdown__filter\rows {
                         $block += 1;
                         continue;
                     }
-                    $blocks[$block][0] .= "\n" . $prefix . $row;
+                    $blocks[$block][0] .= "\n" . ("" !== $row ? $prefix . $row : "");
                     $blocks[$block][1] = 0;
                     continue;
                 }
@@ -216,7 +216,7 @@ namespace x\markdown__filter\rows {
                 // Previous block is a list block?
                 if (false !== \strpos('*+-', $prev[0])) {
                     if ('-' === $prev || false !== \strpos(" \t", $prev[1])) {
-                        if ($dent >= 2) {
+                        if ($dent >= 2 + $d) {
                             $blocks[$block][0] .= "\n" . $prefix . $row;
                             continue;
                         }
@@ -224,9 +224,9 @@ namespace x\markdown__filter\rows {
                             $blocks[$block][0] .= "\n" . $prefix;
                             continue;
                         }
-                        if ("\n" === \substr(\rtrim($prev, " \t"), -1)) {
-                            $blocks[$block][0] = \substr($blocks[$block][0], 0, -1);
-                            $blocks[++$block] = [$prefix, 1]; // End of the list block
+                        if ("\n" === \substr($v = \rtrim($prev, " \t"), -1)) {
+                            $blocks[$block][0] = \substr($v, 0, -1);
+                            $blocks[++$block] = ["", 1]; // End of the list block
                         }
                         $blocks[++$block] = [$prefix . $row, 1]; // End of the list block
                         continue;
@@ -262,7 +262,7 @@ namespace x\markdown__filter\rows {
                 $n = \strspn($prev, '0123456789');
                 if ($n > 0 && $n < 10 && false !== \strpos(').', \substr($prev, $n, 1))) {
                     if ($n + 1 === \strlen($prev) || false !== \strpos(" \t", \substr($prev, $n + 1, 1))) {
-                        if ($dent >= $n + 2) {
+                        if ($dent >= $n + 2 + $d) {
                             $blocks[$block][0] .= "\n" . $prefix . $row;
                             continue;
                         }
@@ -270,9 +270,9 @@ namespace x\markdown__filter\rows {
                             $blocks[$block][0] .= "\n" . $prefix;
                             continue;
                         }
-                        if ("\n" === \substr(\rtrim($prev, " \t"), -1)) {
-                            $blocks[$block][0] = \substr($blocks[$block][0], 0, -1);
-                            $blocks[++$block] = [$prefix, 1]; // End of the list block
+                        if ("\n" === \substr($v = \rtrim($prev, " \t"), -1)) {
+                            $blocks[$block][0] = \substr($v, 0, -1);
+                            $blocks[++$block] = ["", 1]; // End of the list block
                         }
                         $blocks[++$block] = [$prefix . $row, 1]; // End of the list block
                         continue;
@@ -285,15 +285,15 @@ namespace x\markdown__filter\rows {
                 if (\strspn($prev, ' ') >= 4) {
                     // End of the code block?
                     if ("" !== $row && $dent < 4) {
-                        if ("\n" === \substr(\rtrim($prev, " \t"), -1)) {
-                            $blocks[$block][0] = \substr($blocks[$block][0], 0, -1);
-                            $blocks[++$block] = [$prefix, 1];
+                        if ("\n" === \substr($v = \rtrim($prev, " \t"), -1)) {
+                            $blocks[$block][0] = \substr($v, 0, -1);
+                            $blocks[++$block] = ["", 1];
                         }
                         $blocks[++$block] = [$prefix . $row, 1];
                         continue;
                     }
                     // Continue the code block…
-                    $blocks[$block][0] .= "\n" . $prefix . $row;
+                    $blocks[$block][0] .= "\n" . ("" !== $row ? $prefix . $row : "");
                     $blocks[$block][1] = 0;
                     continue;
                 }
