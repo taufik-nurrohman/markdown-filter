@@ -176,26 +176,24 @@ namespace x\markdown__filter\rows {
                     $blocks[$block][1] = 0;
                     continue;
                 }
-                // Previous block is an element block end?
-                if (0 === \strpos($prev, '</') && \preg_match('/^<\/([a-z][a-z\d-]*)>(\n|$)/', $prev, $m)) {
+                // Previous block is an element block?
+                if ('<' === $prev[0]) {
                     if ("" === $row) {
-                        $blocks[$block][1] = 0;
                         $blocks[++$block] = [$prefix, 1];
                         continue;
                     }
-                    $blocks[$block][0] .= "\n" . $prefix . $row;
-                    $blocks[$block][1] = 0;
-                    continue;
-                }
-                // Previous block is an element block start?
-                if ('<' === $prev[0] && \preg_match('/^<([a-z][a-z\d-]*)(\s(?>"[^"]*"|\'[^\']*\'|[^>])*)?>(\n|$)/i', $prev, $m)) {
-                    if ("" === $row) {
+                    $t = \substr(\strtok($prev, " \n\r\t>"), 1);
+                    if (false !== \strpos($t, ':') || false !== \strpos($t, '@')) {
+                        $blocks[$block][0] .= "\n" . $prefix . $row;
+                        continue;
+                    }
+                    $test = \strstr($prev, "\n", true) ?: $prev;
+                    if (\trim($test, " \t") === '<' . $t . '>') {
+                        $blocks[$block][0] .= "\n" . $prefix . $row;
                         $blocks[$block][1] = 0;
-                        $blocks[++$block] = [$prefix, 1];
                         continue;
                     }
                     $blocks[$block][0] .= "\n" . $prefix . $row;
-                    $blocks[$block][1] = 0;
                     continue;
                 }
                 $n = \strspn($prev, '#');
