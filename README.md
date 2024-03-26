@@ -4,7 +4,14 @@ PHP Markdown Filter
 Motivation
 ----------
 
-_TODO_
+As [Markdown](https://github.com/taufik-nurrohman/markdown) has grown in popularity, many people have expected to see
+new formatting syntaxes added. However, people who develop Markdown parsers will generally stick to the philosophy that
+[John Gruber](https://daringfireball.net/projects/markdown) has explained, that the design goal of Markdown’s formatting
+syntax is to make it as readable as possible. The idea is that a Markdown-formatted document should be publishable
+as-is, as plain text, without looking like it’s been marked up with tags or formatting instructions.
+
+Typically, they will simply tell people to use raw HTML syntax if their wishes are too complex and/or not in line with
+Markdown’s philosophy. Markdown does not prohibit people from doing this.
 
 Usage
 -----
