@@ -33,27 +33,27 @@ Require the generated auto-loader file in your application:
 ~~~ php
 <?php
 
-use function x\markdown__filter;
+use function x\markdown_filter;
 
 require 'vendor/autoload.php';
 
-$content = file_get_contents('.\path\to\file.md');
+$value = file_get_contents('.\path\to\file.md');
 
-$content = markdown__filter\rows($content, function ($row, $status) {
-    if (0 === $status) {
+$value = markdown_filter\rows($value, function ($row, $status) {
+    if (0 === $status || 2 === $status) {
         return $row;
     }
-    return markdown__filter\row($row, function ($chunk, $status) {
+    return markdown_filter\row($row, function ($chunk, $status) {
         if (0 === $status) {
             return $chunk;
         }
         // Safely convert `~~asdf~~` syntax to `<del>asdf</del>`
-        return preg_replace('/~~(.*?)~~/', '<del>$1</del>', $chunk);
+        return preg_replace('/~~([^\n]+)~~/', '<del>$1</del>', $chunk);
     });
 });
 
 // You can now convert the Markdown string to HTML string using your preferred Markdown converter
-echo (new ParsedownExtra)->text($content);
+echo (new ParsedownExtra)->text($value);
 ~~~
 
 ### Using File
@@ -63,16 +63,23 @@ Require the `index.php` file in your application:
 ~~~ php
 <?php
 
-use function x\markdown__filter as filter;
+use function x\markdown_filter;
 
 require 'index.php';
 
-$value = filter(file_get_contents('.\path\to\file.md'), static function ($part, $status) {
-    if (0 === $status) {
-        return $part;
+$value = file_get_contents('.\path\to\file.md');
+
+$value = markdown_filter\rows($value, function ($row, $status) {
+    if (0 === $status || 2 === $status) {
+        return $row;
     }
-    // Safely convert `~~asdf~~` syntax to `<del>asdf</del>`
-    return preg_replace('/~~(.*?)~~/', '<del>$1</del>', $part);
+    return markdown_filter\row($row, function ($chunk, $status) {
+        if (0 === $status) {
+            return $chunk;
+        }
+        // Safely convert `~~asdf~~` syntax to `<del>asdf</del>`
+        return preg_replace('/~~([^\n]+)~~/', '<del>$1</del>', $chunk);
+    });
 });
 
 // You can now convert the Markdown string to HTML string using your preferred Markdown converter
@@ -90,7 +97,7 @@ Options
  * @param callable $fn Your filter function, will be applied to each Markdown part.
  * @return null|string
  */
-markdown__filter(?string $value, callable $fn): ?string;
+markdown_filter(?string $value, callable $fn): ?string;
 ~~~
 
 Tests
