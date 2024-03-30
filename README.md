@@ -13,6 +13,8 @@ as-is, as plain text, without looking like it’s been marked up with tags or fo
 Typically, they will simply tell people to use raw HTML syntax if their wishes are too complex and/or not in line with
 Markdown’s philosophy. Markdown parser generally does not prohibit people from doing so.
 
+Etc... etc...
+
 Usage
 -----
 
@@ -33,17 +35,18 @@ Require the generated auto-loader file in your application:
 ~~~ php
 <?php
 
-use function x\markdown_filter;
+use function x\markdown_filter\row as filter_row;
+use function x\markdown_filter\rows as filter_rows;
 
 require 'vendor/autoload.php';
 
-$value = file_get_contents('.\path\to\file.md');
+$content = file_get_contents('.\path\to\file.md');
 
-$value = markdown_filter\rows($value, function ($row, $status) {
+$content = filter_rows($content, function ($chunk, $status) {
     if (0 === $status || 2 === $status) {
-        return $row;
+        return $chunk;
     }
-    return markdown_filter\row($row, function ($chunk, $status) {
+    return filter_row($row, function ($chunk, $status) {
         if (0 === $status) {
             return $chunk;
         }
@@ -53,7 +56,7 @@ $value = markdown_filter\rows($value, function ($row, $status) {
 });
 
 // You can now convert the Markdown string to HTML string using your preferred Markdown converter
-echo (new ParsedownExtra)->text($value);
+echo (new ParsedownExtra)->text($content);
 ~~~
 
 ### Using File
@@ -63,17 +66,18 @@ Require the `index.php` file in your application:
 ~~~ php
 <?php
 
-use function x\markdown_filter;
+use function x\markdown_filter\row as filter_row;
+use function x\markdown_filter\rows as filter_rows;
 
 require 'index.php';
 
-$value = file_get_contents('.\path\to\file.md');
+$content = file_get_contents('.\path\to\file.md');
 
-$value = markdown_filter\rows($value, function ($row, $status) {
+$content = filter_rows($content, function ($chunk, $status) {
     if (0 === $status || 2 === $status) {
-        return $row;
+        return $chunk;
     }
-    return markdown_filter\row($row, function ($chunk, $status) {
+    return filter_row($row, function ($chunk, $status) {
         if (0 === $status) {
             return $chunk;
         }
@@ -83,21 +87,7 @@ $value = markdown_filter\rows($value, function ($row, $status) {
 });
 
 // You can now convert the Markdown string to HTML string using your preferred Markdown converter
-echo (new ParsedownExtra)->text($value);
-~~~
-
-Options
--------
-
-~~~ php
-/**
- * Convert Markdown string to HTML string.
- *
- * @param null|string $value Your Markdown string.
- * @param callable $fn Your filter function, will be applied to each Markdown part.
- * @return null|string
- */
-markdown_filter(?string $value, callable $fn): ?string;
+echo (new ParsedownExtra)->text($content);
 ~~~
 
 Tests

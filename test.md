@@ -434,11 +434,6 @@ asdf asdf asdf
 
 asdf asdf asdf
 
-Currently, I don’t really care about Markdown’s lazy block syntax because the main purpose of this tokenizer is only to
-mark blocks that can be used as a place for the “embed” syntax. So, Markdown syntax like “lazy block quote” and “lazy
-block list” will likely appear inconsistent in the situation below. Don’t worry, my Markdown parser will do the
-tokenization better after this. My main focus for now is just to keep it fast and simple.
-
     asdf asdf asdf
 asdf asdf asdf
 
@@ -455,12 +450,6 @@ asdf asdf asdf
 asdf asdf asdf
 
 + asdf asdf asdf
-asdf asdf asdf
-
-+ + +
-asdf asdf asdf
-
-+++
 asdf asdf asdf
 
 - asdf asdf asdf
@@ -484,7 +473,13 @@ asdf asdf asdf
 1) asdf asdf asdf
 asdf asdf asdf
 
+2) asdf asdf asdf
+asdf asdf asdf
+
 1. asdf asdf asdf
+asdf asdf asdf
+
+2. asdf asdf asdf
 asdf asdf asdf
 
 > asdf asdf asdf
@@ -547,12 +542,6 @@ asdf asdf asdf
 + asdf asdf asdf
 
 asdf asdf asdf
-+ + +
-
-asdf asdf asdf
-+++
-
-asdf asdf asdf
 - asdf asdf asdf
 
 asdf asdf asdf
@@ -574,7 +563,13 @@ asdf asdf asdf
 1) asdf asdf asdf
 
 asdf asdf asdf
+2) asdf asdf asdf
+
+asdf asdf asdf
 1. asdf asdf asdf
+
+asdf asdf asdf
+2. asdf asdf asdf
 
 asdf asdf asdf
 > asdf asdf asdf

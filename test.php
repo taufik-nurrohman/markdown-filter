@@ -38,9 +38,9 @@ $out .= '</p>';
 $out .= '</form>';
 
 $out .= '<div style="display:flex;flex-direction:row;gap:15px;">';
-$out .= '<div style="background:#fff;border:2px solid #080;color:#000;display:flex;flex-direction:column;font:normal normal 13px/15px monospace;gap:1px;overflow:auto;padding:1px;white-space:pre;">';
+$out .= '<div style="background:#fff;border:2px solid #080;color:#000;display:flex;flex:1;flex-direction:column;font:normal normal 13px/15px monospace;gap:1px;overflow:auto;padding:1px;white-space:pre;">';
 
-foreach (x\markdown_filter\rows\encode($content) as $row) {
+foreach (x\markdown_filter\rows\split($content) as $row) {
     [$part, $status] = $row;
     $part = "" !== trim($part, " \t") ? htmlspecialchars($part) : '<br>';
     $part = preg_replace_callback('/^[ \t]+|[ \t]+$/m', static function ($m) {
@@ -52,7 +52,7 @@ foreach (x\markdown_filter\rows\encode($content) as $row) {
         $out .= '<div style="border:2px solid #800;">' . $part . '</div>';
     } else if (1 === $status) {
         $out .= '<div style="border:2px solid #080;">';
-        foreach (x\markdown_filter\row\encode($part) as $v) {
+        foreach (x\markdown_filter\row\split($part) as $v) {
             $out .= '<span style="color:#' . (0 === $v[1] ? '800' : '000') . ';">' . $v[0] . '</span>';
         }
         $out .= '</div>';
@@ -82,7 +82,7 @@ $content = x\markdown_filter\rows($content, static function ($part, $status) {
     return $prefix . $part;
 });
 
-$out .= '<div style="background:#fff;color:#000;font:normal normal 13px/15px monospace;gap:1px;overflow:auto;white-space:pre;">';
+$out .= '<div style="background:#fff;color:#000;flex:1;font:normal normal 13px/15px monospace;overflow:auto;white-space:pre;">';
 
 $out .= preg_replace_callback('/^[ \t]+|[ \t]+$/m', static function ($m) {
     return strtr($m[0], [
