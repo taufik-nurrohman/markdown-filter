@@ -16,7 +16,7 @@ Markdown’s philosophy. Markdown parser generally does not prohibit people from
 Usage
 -----
 
-This converter can be installed using [Composer](https://packagist.org/packages/taufik-nurrohman/markdown.filter), but
+This converter can be installed using [Composer](https://packagist.org/packages/taufik-nurrohman/markdown-filter), but
 it doesn’t need any other dependencies and just uses Composer’s ability to automatically include files. Those of you who
 don’t use Composer should be able to include the `index.php` file directly into your application without any problems.
 
@@ -25,7 +25,7 @@ don’t use Composer should be able to include the `index.php` file directly int
 From the command line interface, navigate to your project folder then run this command:
 
 ~~~ sh
-composer require taufik-nurrohman/markdown.filter
+composer require taufik-nurrohman/markdown-filter
 ~~~
 
 Require the generated auto-loader file in your application:
@@ -33,20 +33,27 @@ Require the generated auto-loader file in your application:
 ~~~ php
 <?php
 
-use function x\markdown__filter as filter;
+use function x\markdown__filter;
 
 require 'vendor/autoload.php';
 
-$value = filter(file_get_contents('.\path\to\file.md'), static function ($part, $status) {
+$content = file_get_contents('.\path\to\file.md');
+
+$content = markdown__filter\rows($content, function ($row, $status) {
     if (0 === $status) {
-        return $part;
+        return $row;
     }
-    // Safely convert `~~asdf~~` syntax to `<del>asdf</del>`
-    return preg_replace('/~~(.*?)~~/', '<del>$1</del>', $part);
+    return markdown__filter\row($row, function ($chunk, $status) {
+        if (0 === $status) {
+            return $chunk;
+        }
+        // Safely convert `~~asdf~~` syntax to `<del>asdf</del>`
+        return preg_replace('/~~(.*?)~~/', '<del>$1</del>', $chunk);
+    });
 });
 
 // You can now convert the Markdown string to HTML string using your preferred Markdown converter
-echo (new ParsedownExtra)->text($value);
+echo (new ParsedownExtra)->text($content);
 ~~~
 
 ### Using File
