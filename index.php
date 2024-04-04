@@ -226,12 +226,32 @@ namespace x\markdown_filter\rows {
                 }
                 // Is in a list block?
                 if (false !== \strpos('*+-', $prev[0]) && 2 === $blocks[$block][1]) {
-                    // TODO
+                    // End of the list block?
+                    if ("" !== $row && $dent < 2) {
+                        if ("\n" === \substr($prev, -1)) {
+                            $blocks[$block][0] = \substr($blocks[$block][0], 0, -1);
+                            $blocks[++$block] = ["", 1];
+                        }
+                        $blocks[++$block] = [$prefix . $row, 1];
+                        continue;
+                    }
+                    $blocks[$block][0] .= "\n" . ("" !== $row ? $prefix . $row : "");
+                    continue;
                 }
                 // Is in a list block?
                 $n = \strspn($prev, '0123456789');
                 if ($n > 0 && $n < 10 && 2 === $blocks[$block][1]) {
-                    // TODO
+                    // End of the list block?
+                    if ("" !== $row && $dent < $n + 1 + 1) {
+                        if ("\n" === \substr($prev, -1)) {
+                            $blocks[$block][0] = \substr($blocks[$block][0], 0, -1);
+                            $blocks[++$block] = ["", 1];
+                        }
+                        $blocks[++$block] = [$prefix . $row, 1];
+                        continue;
+                    }
+                    $blocks[$block][0] .= "\n" . ("" !== $row ? $prefix . $row : "");
+                    continue;
                 }
                 // Current block is a blank line…
                 if ("" === $row) {
@@ -296,7 +316,7 @@ namespace x\markdown_filter\rows {
                     continue;
                 }
                 // Start of a tight list block
-                if (false !== \strpos('*+-', $row[0])) {
+                if ($dent <= $dent_prev && false !== \strpos('*+-', $row[0])) {
                     if (1 === \strlen($row) || false !== \strpos(" \t", $row[1])) {
                         $blocks[++$block] = [$prefix . $row, 2];
                         continue;
@@ -306,7 +326,7 @@ namespace x\markdown_filter\rows {
                 }
                 // Start of a tight list block
                 $n = \strspn($row, '0123456789');
-                if (false !== \strpos(').', \substr($row, $n, 1))) {
+                if ($dent <= $dent_prev && false !== \strpos(').', \substr($row, $n, 1))) {
                     // <https://spec.commonmark.org/0.31.2#example-304>
                     if (1 !== (int) \substr($row, 0, $n)) {
                         $blocks[$block][0] .= "\n" . $prefix . $row;

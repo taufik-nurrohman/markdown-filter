@@ -519,9 +519,6 @@ asdf asdf asdf
 </div> asdf
 asdf asdf asdf
 
-asdf `asdf` asdf
-asdf asdf asdf
-
 
 asdf asdf asdf
     asdf asdf asdf
@@ -608,5 +605,9 @@ asdf asdf asdf
 asdf asdf asdf
 </div> asdf
 
-asdf asdf asdf
-asdf `asdf` asdf
+asdf `asdf` asdf asdf
+asdf asdf asdf <asdf>
+asdf <!-- asdf --> as
+df <![CDATA[ asdf ]]>
+asdf <!asdf> asdf asd
+f <?asdf asdf asdf ?>
