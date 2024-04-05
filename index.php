@@ -66,7 +66,7 @@ namespace x\markdown_filter\rows {
                 $parts = \explode("\n", $row);
                 foreach ($parts as $k => $v) {
                     if ('>' === $v[0]) {
-                        if (' ' === $v[1] ?? "") {
+                        if (' ' === ($v[1] ?? "")) {
                             $parts[$k] = \substr($v, 2);
                             continue;
                         }
@@ -285,13 +285,13 @@ namespace x\markdown_filter\rows {
                         $blocks[++$block] = [$prefix . $row, 0];
                         continue;
                     }
+                    $test = \trim($row);
                     // <https://spec.commonmark.org/0.31.2#html-blocks>
-                    if (false !== \strpos(',address,article,aside,base,basefont,blockquote,body,caption,center,col,colgroup,dd,details,dialog,dir,div,dl,dt,fieldset,figcaption,figure,footer,form,frame,frameset,h1,h2,h3,h4,h5,h6,head,header,hr,html,iframe,legend,li,link,main,menu,menuitem,nav,noframes,ol,optgroup,option,p,pre,param,script,search,section,source,style,summary,table,tbody,td,textarea,tfoot,th,thead,title,tr,track,ul,', ',' . \trim($t, '/') . ',')) {
+                    if (false !== \strpos(',address,article,aside,base,basefont,blockquote,body,caption,center,col,colgroup,dd,details,dialog,dir,div,dl,dt,fieldset,figcaption,figure,footer,form,frame,frameset,h1,h2,h3,h4,h5,h6,head,header,hr,html,iframe,legend,li,link,main,menu,menuitem,nav,noframes,ol,optgroup,option,p,pre,param,script,search,section,source,style,summary,table,tbody,td,textarea,tfoot,th,thead,title,tr,track,ul,', ',' . ($n = \trim($t, '/')) . ',')) {
                         $blocks[++$block] = [$prefix . $row, 0];
                         continue;
                     }
-                    $test = \trim($row);
-                    if ('<' . $t . '>' === $test || '>' === \substr($test, -1) && \preg_match('/^<' . \trim($t, '/') . '(\s(?>"[^"]*"|\'[^\']*\'|[^>])*)?>$/', $test)) {
+                    if ('<' . $t . '>' === $test || '>' === \substr($test, -1) && \preg_match('/^<' . $n . '(\s(?>"[^"]*"|\'[^\']*\'|[^>])*)?>$/', $test)) {
                         $blocks[++$block] = [$prefix . $row, 0];
                         continue;
                     }
@@ -362,6 +362,23 @@ namespace x\markdown_filter\rows {
                 $blocks[++$block] = [$prefix . $row, 0];
                 continue;
             }
+            // Start of a list block
+            if (false !== \strpos('*+-', $row[0])) {
+                if (1 === \strlen($row) || false !== \strpos(" \t", $row[1])) {
+                    $blocks[++$block] = [$prefix . $row, 2];
+                    continue;
+                }
+                $blocks[$block][0] .= "\n" . $prefix . $row;
+                continue;
+            }
+            // Start of a list block
+            $n = \strspn($row, '0123456789');
+            if (false !== \strpos(').', \substr($row, $n, 1))) {
+                if ($n + 1 === \strlen($row) || false !== \strpos(" \t", \substr($row, $n + 1, 1))) {
+                    $blocks[++$block] = [$prefix . $row, 2];
+                    continue;
+                }
+            }
             // Start of a quote block
             if ('>' === $row[0]) {
                 $blocks[++$block] = [$prefix . $row, 2];
@@ -378,13 +395,13 @@ namespace x\markdown_filter\rows {
                     $blocks[++$block] = [$prefix . $row, 0];
                     continue;
                 }
+                $test = \trim($row);
                 // <https://spec.commonmark.org/0.31.2#html-blocks>
-                if (false !== \strpos(',address,article,aside,base,basefont,blockquote,body,caption,center,col,colgroup,dd,details,dialog,dir,div,dl,dt,fieldset,figcaption,figure,footer,form,frame,frameset,h1,h2,h3,h4,h5,h6,head,header,hr,html,iframe,legend,li,link,main,menu,menuitem,nav,noframes,ol,optgroup,option,p,pre,param,script,search,section,source,style,summary,table,tbody,td,textarea,tfoot,th,thead,title,tr,track,ul,', ',' . \trim($t, '/') . ',')) {
+                if (false !== \strpos(',address,article,aside,base,basefont,blockquote,body,caption,center,col,colgroup,dd,details,dialog,dir,div,dl,dt,fieldset,figcaption,figure,footer,form,frame,frameset,h1,h2,h3,h4,h5,h6,head,header,hr,html,iframe,legend,li,link,main,menu,menuitem,nav,noframes,ol,optgroup,option,p,pre,param,script,search,section,source,style,summary,table,tbody,td,textarea,tfoot,th,thead,title,tr,track,ul,', ',' . ($n = \trim($t, '/')) . ',')) {
                     $blocks[++$block] = [$prefix . $row, 0];
                     continue;
                 }
-                $test = \trim($row);
-                if ('<' . $t . '>' === $test || '>' === \substr($test, -1) && \preg_match('/^<' . \trim($t, '/') . '(\s(?>"[^"]*"|\'[^\']*\'|[^>])*)?>$/', $test)) {
+                if ('<' . $t . '>' === $test || '>' === \substr($test, -1) && \preg_match('/^<' . $n . '(\s(?>"[^"]*"|\'[^\']*\'|[^>])*)?>$/', $test)) {
                     $blocks[++$block] = [$prefix . $row, 0];
                     continue;
                 }
@@ -407,23 +424,6 @@ namespace x\markdown_filter\rows {
                 $blocks[++$block] = [$prefix . $row, 1];
                 $block += 1; // Force a new block after it
                 continue;
-            }
-            // Start of a list block
-            if (false !== \strpos('*+-', $row[0])) {
-                if (1 === \strlen($row) || false !== \strpos(" \t", $row[1])) {
-                    $blocks[++$block] = [$prefix . $row, 2];
-                    continue;
-                }
-                $blocks[$block][0] .= "\n" . $prefix . $row;
-                continue;
-            }
-            // Start of a list block
-            $n = \strspn($row, '0123456789');
-            if (false !== \strpos(').', \substr($row, $n, 1))) {
-                if ($n + 1 === \strlen($row) || false !== \strpos(" \t", \substr($row, $n + 1, 1))) {
-                    $blocks[++$block] = [$prefix . $row, 2];
-                    continue;
-                }
             }
             // Default is to start a new block…
             $blocks[++$block] = [$prefix . $row, 1];
