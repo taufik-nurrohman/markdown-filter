@@ -55,6 +55,83 @@ namespace x\markdown_filter\row {
 }
 
 namespace x\markdown_filter\rows {
+    function _code(string $v) {
+        return _code_a($v) || _code_b($v);
+    }
+    function _code_a(string $v) {
+        return \strspn($v, ' ') >= 4;
+    }
+    function _code_b(string $v) {
+        if ($v && false !== \strpos('`~', $v[0]) && ($n = \strspn($v, $v[0])) >= 3) {
+            $test = \strstr($v, "\n", true) ?: $v;
+            // Character “`” cannot exist in the info string if code block fence uses “`” character(s)
+            if ('`' === $v[0] && false !== \strpos(\substr($test, $n), '`')) {
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+    function _header(string $v) {
+        $n = \strspn($v, '#');
+        if (0 === $n || $n > 6) {
+            return false;
+        }
+        if ($n === \strlen($v) || false !== \strpos(" \t", \substr($v, $n, 1))) {
+            return true;
+        }
+        return false;
+    }
+    function _list(string $v) {
+        return _list_a($v) || _list_b($v);
+    }
+    function _list_a(string $v) {
+        $n = \strspn($v, '0123456789');
+        if (false !== \strpos(').', \substr($v, $n, 1))) {
+            if ($n + 1 === \strlen($v) || false !== \strpos(" \t", \substr($v, $n + 1, 1))) {
+                return true;
+            }
+        }
+        return false;
+    }
+    function _list_b(string $v) {
+        if ($v && false !== \strpos('*+-', $v[0])) {
+            if (1 === \strlen($v) || false !== \strpos(" \t", $v[1])) {
+                return true;
+            }
+        }
+        return false;
+    }
+    function _quote(string $v) {
+        return $v && '>' === $v[0];
+    }
+    function _raw(string $v) {
+        if (!$v || '<' !== $v[0]) {
+            return false;
+        }
+        $t = \substr(\strtok($v = \trim($v), " \n\r\t>"), 1);
+        if (false !== \strpos($t, ':') || false !== \strpos($t, '@')) {
+            return false;
+        }
+        if (false !== \strpos('!?', $t[0])) {
+            return true;
+        }
+        $n = \trim($t, '/');
+        if (false !== \strpos(',address,article,aside,base,basefont,blockquote,body,caption,center,col,colgroup,dd,details,dialog,dir,div,dl,dt,fieldset,figcaption,figure,footer,form,frame,frameset,h1,h2,h3,h4,h5,h6,head,header,hr,html,iframe,legend,li,link,main,menu,menuitem,nav,noframes,ol,optgroup,option,p,pre,param,script,search,section,source,style,summary,table,tbody,td,textarea,tfoot,th,thead,title,tr,track,ul,', ',' . ($n = \trim($t)) . ',')) {
+            return true;
+        }
+        if ('<' . $t . '>' === $v || '>' === \substr($v, -1) && \preg_match('/^<' . $n . '(\s(?>"[^"]*"|\'[^\']*\'|[^>])*)?>$/', $v)) {
+            return true;
+        }
+        return false;
+    }
+    function _rule(string $v) {
+        $test = \strtr($v = \trim($v), [
+            "\t" => "",
+            ' ' => ""
+        ]);
+        return $v && false !== \strpos('*-_', $v[0]) && \strlen($test) === ($n = \strspn($v, $v[0])) && $n >= 3;
+    }
     function join(array $blocks, callable $fn) {
         foreach ($blocks as &$block) {
             [$row, $status] = $block;
@@ -152,23 +229,23 @@ namespace x\markdown_filter\rows {
                     $prev = \substr($prev, $dent_prev);
                 }
                 // Is in a code block?
-                if ($dent_prev >= 4 && 0 === $blocks[$block][1]) {
+                if (_code_a($prev)) {
                     // End of the code block?
                     if ("" !== $row && $dent < 4) {
                         if ("\n" === \substr($prev, -1)) {
                             $blocks[$block][0] = \substr($blocks[$block][0], 0, -1);
                             $blocks[++$block] = ["", 1];
                         }
-                        $blocks[++$block] = [$prefix . $row, 1];
+                        $blocks[++$block] = [$prefix . $row, _code($row) || _raw($row) ? 0 : (_quote($row) || _list($row) ? 2 : 1)];
                         continue;
                     }
                     $blocks[$block][0] .= "\n" . ("" !== $row ? $prefix . $row : "");
                     continue;
                 }
                 // Is in a code block?
-                if (false !== \strpos('`~', $prev[0]) && ($n = \strspn($prev, $prev[0])) >= 3 && 0 === $blocks[$block][1]) {
+                if (_code_b($prev)) {
                     // End of the code block?
-                    if ($row === \str_repeat($prev[0], $n)) {
+                    if ($row === \str_repeat($prev[0], \strspn($prev, $prev[0]))) {
                         $blocks[$block++][0] .= "\n" . $prefix . $row;
                         continue;
                     }
@@ -176,8 +253,8 @@ namespace x\markdown_filter\rows {
                     $blocks[$block][0] .= "\n" . ("" !== $row ? $prefix . $row : "");
                     continue;
                 }
-                // Is in a HTML block?
-                if ('<' === $prev[0] && 0 === $blocks[$block][1]) {
+                // Is in a raw block?
+                if (_raw($prev)) {
                     // Is in a HTML comment block?
                     if (0 === \strpos($prev, '<!--')) {
                         // End of the HTML comment block?
@@ -221,33 +298,33 @@ namespace x\markdown_filter\rows {
                         $blocks[$block][0] .= "\n" . $prefix . $row;
                         continue;
                     }
-                    $blocks[++$block] = [$prefix . $row, 1]; // End of the HTML block
+                    $blocks[++$block] = [$prefix . $row, 1]; // End of the raw block
                     continue;
                 }
                 // Is in a list block?
-                if (false !== \strpos('*+-', $prev[0]) && 2 === $blocks[$block][1]) {
-                    // End of the list block?
-                    if ("" !== $row && $dent < 2) {
-                        if ("\n" === \substr($prev, -1)) {
-                            $blocks[$block][0] = \substr($blocks[$block][0], 0, -1);
-                            $blocks[++$block] = ["", 1];
-                        }
-                        $blocks[++$block] = [$prefix . $row, 1];
-                        continue;
-                    }
-                    $blocks[$block][0] .= "\n" . ("" !== $row ? $prefix . $row : "");
-                    continue;
-                }
-                // Is in a list block?
-                $n = \strspn($prev, '0123456789');
-                if ($n > 0 && $n < 10 && 2 === $blocks[$block][1]) {
+                if (_list_a($prev)) {
+                    $n = \strspn($prev, '0123456789');
                     // End of the list block?
                     if ("" !== $row && $dent < $n + 1 + 1) {
                         if ("\n" === \substr($prev, -1)) {
                             $blocks[$block][0] = \substr($blocks[$block][0], 0, -1);
                             $blocks[++$block] = ["", 1];
                         }
-                        $blocks[++$block] = [$prefix . $row, 1];
+                        $blocks[++$block] = [$prefix . $row, _code($row) || _raw($row) ? 0 : (_quote($row) || _list($row) ? 2 : 1)];
+                        continue;
+                    }
+                    $blocks[$block][0] .= "\n" . ("" !== $row ? $prefix . $row : "");
+                    continue;
+                }
+                // Is in a list block?
+                if (_list_b($prev)) {
+                    // End of the list block?
+                    if ("" !== $row && $dent < 2) {
+                        if ("\n" === \substr($prev, -1)) {
+                            $blocks[$block][0] = \substr($blocks[$block][0], 0, -1);
+                            $blocks[++$block] = ["", 1];
+                        }
+                        $blocks[++$block] = [$prefix . $row, _code($row) || _raw($row) ? 0 : (_quote($row) || _list($row) ? 2 : 1)];
                         continue;
                     }
                     $blocks[$block][0] .= "\n" . ("" !== $row ? $prefix . $row : "");
@@ -259,83 +336,36 @@ namespace x\markdown_filter\rows {
                     continue;
                 }
                 // Start of a tight code block
-                if (false !== \strpos('`~', $row[0]) && ($n = \strspn($row, $row[0])) >= 3) {
-                    $test = \strstr($row, "\n", true) ?: $row;
-                    // Character “`” cannot exist in the info string if code block fence uses “`” character(s)
-                    if ('`' === $row[0] && false !== \strpos(\substr($test, $n), '`')) {
-                        $blocks[++$block] = [$prefix . $row, 1];
-                        continue;
-                    }
+                if (_code_b($row)) {
                     $blocks[++$block] = [$prefix . $row, 0];
                     continue;
                 }
                 // Start of a tight quote block
-                if ('>' === $row[0] && '>' !== $prev[0]) {
+                if (_quote($row) && !_quote($prev)) {
                     $blocks[++$block] = [$prefix . $row, 2];
                     continue;
                 }
-                // Start of a tight HTML block
-                if ('<' === $row[0]) {
-                    $t = \substr(\strtok($row, " \n\r\t>"), 1);
-                    if (false !== \strpos($t, ':') || false !== \strpos($t, '@')) {
-                        $blocks[++$block] = [$prefix . $row, 1];
-                        continue;
-                    }
-                    if (false !== \strpos('!?', $t[0])) {
-                        $blocks[++$block] = [$prefix . $row, 0];
-                        continue;
-                    }
-                    $test = \trim($row);
-                    // <https://spec.commonmark.org/0.31.2#html-blocks>
-                    if (false !== \strpos(',address,article,aside,base,basefont,blockquote,body,caption,center,col,colgroup,dd,details,dialog,dir,div,dl,dt,fieldset,figcaption,figure,footer,form,frame,frameset,h1,h2,h3,h4,h5,h6,head,header,hr,html,iframe,legend,li,link,main,menu,menuitem,nav,noframes,ol,optgroup,option,p,pre,param,script,search,section,source,style,summary,table,tbody,td,textarea,tfoot,th,thead,title,tr,track,ul,', ',' . ($n = \trim($t, '/')) . ',')) {
-                        $blocks[++$block] = [$prefix . $row, 0];
-                        continue;
-                    }
-                    if ('<' . $t . '>' === $test || '>' === \substr($test, -1) && \preg_match('/^<' . $n . '(\s(?>"[^"]*"|\'[^\']*\'|[^>])*)?>$/', $test)) {
-                        $blocks[++$block] = [$prefix . $row, 0];
-                        continue;
-                    }
-                    $blocks[++$block] = [$prefix . $row, 1];
+                // Start of a tight raw block
+                if (_raw($row)) {
+                    $blocks[++$block] = [$prefix . $row, 0];
                     continue;
                 }
-                // Start of a tight horizontal rule
-                $test = \strtr($row, [
-                    "\t" => "",
-                    ' ' => ""
-                ]);
-                if (false !== \strpos('*_', $row[0]) && \strlen($test) === ($n = \strspn($test, $test[0])) && $n > 2) {
+                // Start of a tight rule block
+                if (_rule($row)) {
                     $blocks[++$block] = [$prefix . $row, 1];
                     $block += 1; // Force a new block after it
                     continue;
                 }
-                // Start of a tight header block?
-                $n = \strspn($row, '#');
-                if ($n > 0 && $n < 7 && false !== \strpos(" \t", \substr($row . ' ', $n, 1))) {
+                // Start of a tight header block
+                if (_header($row)) {
                     $blocks[++$block] = [$prefix . $row, 1];
                     $block += 1; // Force a new block after it
                     continue;
                 }
                 // Start of a tight list block
-                if ($dent <= $dent_prev && false !== \strpos('*+-', $row[0])) {
-                    if (1 === \strlen($row) || false !== \strpos(" \t", $row[1])) {
-                        $blocks[++$block] = [$prefix . $row, 2];
-                        continue;
-                    }
-                    $blocks[$block][0] .= "\n" . $prefix . $row;
+                if (_list($row)) {
+                    $blocks[++$block] = [$prefix . $row, 2];
                     continue;
-                }
-                // Start of a tight list block
-                $n = \strspn($row, '0123456789');
-                if ($dent <= $dent_prev && false !== \strpos(').', \substr($row, $n, 1))) {
-                    // <https://spec.commonmark.org/0.31.2#example-304>
-                    if (1 !== (int) \substr($row, 0, $n)) {
-                        $blocks[$block][0] .= "\n" . $prefix . $row;
-                        continue;
-                    }
-                    if ($n + 1 === \strlen($row) || false !== \strpos(" \t", \substr($row, $n + 1, 1))) {
-                        $blocks[++$block] = [$prefix . $row, 2];
-                        continue;
-                    }
                 }
                 // Continue the current block…
                 $blocks[$block][0] .= "\n" . $prefix . $row;
@@ -347,80 +377,33 @@ namespace x\markdown_filter\rows {
                 continue;
             }
             // Start of a code block
-            if (false !== \strpos('`~', $row[0]) && ($n = \strspn($row, $row[0])) >= 3) {
-                $test = \strstr($row, "\n", true) ?: $row;
-                // Character “`” cannot exist in the info string if code block fence uses “`” character(s)
-                if ('`' === $row[0] && false !== \strpos(\substr($test, $n), '`')) {
-                    $blocks[++$block] = [$prefix . $row, 1];
-                    continue;
-                }
-                $blocks[++$block] = [$prefix . $row, 0];
-                continue;
-            }
-            // Start of a code block
-            if ($dent >= 4) {
+            if (_code($row)) {
                 $blocks[++$block] = [$prefix . $row, 0];
                 continue;
             }
             // Start of a list block
-            if (false !== \strpos('*+-', $row[0])) {
-                if (1 === \strlen($row) || false !== \strpos(" \t", $row[1])) {
-                    $blocks[++$block] = [$prefix . $row, 2];
-                    continue;
-                }
-                $blocks[$block][0] .= "\n" . $prefix . $row;
-                continue;
-            }
-            // Start of a list block
-            $n = \strspn($row, '0123456789');
-            if (false !== \strpos(').', \substr($row, $n, 1))) {
-                if ($n + 1 === \strlen($row) || false !== \strpos(" \t", \substr($row, $n + 1, 1))) {
-                    $blocks[++$block] = [$prefix . $row, 2];
-                    continue;
-                }
-            }
-            // Start of a quote block
-            if ('>' === $row[0]) {
+            if (_list($row)) {
                 $blocks[++$block] = [$prefix . $row, 2];
                 continue;
             }
-            // Start of a HTML block
-            if ('<' === $row[0]) {
-                $t = \substr(\strtok($row, " \n\r\t>"), 1);
-                if (false !== \strpos($t, ':') || false !== \strpos($t, '@')) {
-                    $blocks[++$block] = [$prefix . $row, 1];
-                    continue;
-                }
-                if (false !== \strpos('!?', $t[0])) {
-                    $blocks[++$block] = [$prefix . $row, 0];
-                    continue;
-                }
-                $test = \trim($row);
-                // <https://spec.commonmark.org/0.31.2#html-blocks>
-                if (false !== \strpos(',address,article,aside,base,basefont,blockquote,body,caption,center,col,colgroup,dd,details,dialog,dir,div,dl,dt,fieldset,figcaption,figure,footer,form,frame,frameset,h1,h2,h3,h4,h5,h6,head,header,hr,html,iframe,legend,li,link,main,menu,menuitem,nav,noframes,ol,optgroup,option,p,pre,param,script,search,section,source,style,summary,table,tbody,td,textarea,tfoot,th,thead,title,tr,track,ul,', ',' . ($n = \trim($t, '/')) . ',')) {
-                    $blocks[++$block] = [$prefix . $row, 0];
-                    continue;
-                }
-                if ('<' . $t . '>' === $test || '>' === \substr($test, -1) && \preg_match('/^<' . $n . '(\s(?>"[^"]*"|\'[^\']*\'|[^>])*)?>$/', $test)) {
-                    $blocks[++$block] = [$prefix . $row, 0];
-                    continue;
-                }
-                $blocks[++$block] = [$prefix . $row, 1];
+            // Start of a quote block
+            if (_quote($row)) {
+                $blocks[++$block] = [$prefix . $row, 2];
                 continue;
             }
-            // Start of a horizontal rule
-            $test = \strtr($row, [
-                "\t" => "",
-                ' ' => ""
-            ]);
-            if (false !== \strpos('*-_', $row[0]) && \strlen($test) === ($n = \strspn($test, $test[0])) && $n > 2) {
+            // Start of a raw block
+            if (_raw($row)) {
+                $blocks[++$block] = [$prefix . $row, 0];
+                continue;
+            }
+            // Start of a rule block
+            if (_rule($row)) {
                 $blocks[++$block] = [$prefix . $row, 1];
                 $block += 1; // Force a new block after it
                 continue;
             }
-            // Start of a header block?
-            $n = \strspn($row, '#');
-            if ($n > 0 && $n < 7 && false !== \strpos(" \t", \substr($row . ' ', $n, 1))) {
+            // Start of a header block
+            if (_header($row)) {
                 $blocks[++$block] = [$prefix . $row, 1];
                 $block += 1; // Force a new block after it
                 continue;
