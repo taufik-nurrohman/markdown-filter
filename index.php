@@ -33,55 +33,67 @@ namespace x\markdown_filter\row {
         return \implode("", $chunks);
     }
     function split(string $content) {
-        $chunks = [];
+        $chops = [];
         while (false !== ($chop = \strpbrk($content, '<&`'))) {
             if ("" !== ($v = \substr($content, 0, \strlen($content) - \strlen($chop)))) {
                 $content = \substr($content, \strlen($v));
-                $chunks[] = [$v, 1];
+                $chops[] = [$v, 1];
             }
             if (0 === \strpos($chop, '<')) {
-                if (0 === \strpos($chop, '<!--')) {
-                    $content = \substr($content, $n = \strpos($chop, '-->') + 3);
-                    $chunks[] = [\substr($chop, 0, $n), 0];
+                // <https://spec.commonmark.org/0.31.2#html-comment>
+                if (0 === \strpos($chop, '<!--') && ($n = \strpos($chop, '-->')) > 1) {
+                    $content = \substr($content, $n += 3);
+                    $chops[] = [\substr($chop, 0, $n), 0];
                     continue;
                 }
-                if (0 === \strpos($chop, '<![CDATA[')) {
-                    $content = \substr($content, $n = \strpos($chop, ']]>') + 3);
-                    $chunks[] = [\substr($chop, 0, $n)];
+                if (0 === \strpos($chop, '<![CDATA[') && ($n = \strpos($chop, ']]>')) > 8) {
+                    $content = \substr($content, $n += 3);
+                    $chops[] = [\substr($chop, 0, $n), 0];
                     continue;
                 }
-                if (0 === \strpos($chop, '<!')) {
-                    $content = \substr($content, $n = \strpos($chop, '>') + 1);
-                    $chunks[] = [\substr($chop, 0, $n)];
-                    continue;
-                }
-                if (0 === \strpos($chop, '<?')) {
-                    $content = \substr($content, $n = \strpos($chop, '?>') + 3);
-                    $chunks[] = [\substr($chop, 0, $n), 0];
-                    continue;
-                }
-                if (\preg_match('/^<>/', $chop, $m)) {
+                if (0 === \strpos($chop, '<!') && \strpos($chop, '>') > 2 && \preg_match('/^<![a-z](?>"[^"]*"|\'[^\']*\'|[^>])+>/i', $chop, $m)) {
                     $content = \substr($content, \strlen($m[0]));
-                    $chunks[] = [$m[0], 0];
+                    $chops[] = [$m[0], 0];
+                    continue;
+                }
+                if (0 === \strpos($chop, '<' . '?') && \strpos($chop, '?' . '>') > 1 && \preg_match('/^<\?(?>"[^"]*"|\'[^\']*\'|[^>])+\?>/', $chop, $m)) {
+                    $content = \substr($content, \strlen($m[0]));
+                    $chops[] = [$m[0], 0];
+                    continue;
+                }
+                // <https://spec.commonmark.org/0.30#raw-html>
+                if (\preg_match('/^<\/[a-z][a-z\d-]*\s*>/i', $chop, $m)) {
+                    $content = \substr($content, \strlen($m[0]));
+                    $chops[] = [$m[0], 0];
+                    continue;
+                }
+                // <https://spec.commonmark.org/0.30#raw-html>
+                if (\preg_match('/^<[a-z][a-z\d-]*(?>\s+[a-z:_][\w.:-]*(?>\s*=\s*(?>"[^"]*"|\'[^\']*\'|[^\s"\'<=>`]+)?)?)*\s*\/?>/i', $chop, $m)) {
+                    $content = \substr($content, \strlen($m[0]));
+                    $chops[] = [$m[0], 0];
                     continue;
                 }
                 $content = \substr($content, 1);
-                $chunks[] = ['<', 1];
+                $chops[] = ['<', 1];
                 continue;
             }
-            if (0 === \strpos($chop, '&')) {}
+            if (0 === \strpos($chop, '&') && \strpos($chop, ';') > 1 && !\preg_match('/^&(?>#x[a-f\d]{1,6}|#\d{1,7}|[a-z][a-z\d]{1,31});/i', $chop, $m)) {
+                $content = \substr($content, \strlen($m[0]));
+                $chops[] = [$m[0], 0];
+                continue;
+            }
             if (0 === \strpos($chop, '`') && \preg_match('/^(`+)[^`]+\1(?!`)/', $chop, $m)) {
                 $content = \substr($content, \strlen($m[0]));
-                $chunks[] = [$m[0], 0];
+                $chops[] = [$m[0], 0];
                 continue;
             }
             $content = \substr($content, \strlen($chop));
-            $chunks[] = [$chop, 1];
+            $chops[] = [$chop, 1];
         }
         if ("" !== $content) {
-            $chunks[] = [$content, 1];
+            $chops[] = [$content, 1];
         }
-        return $chunks;
+        return $chops;
     }
 }
 
@@ -117,17 +129,24 @@ namespace x\markdown_filter\rows {
         return _list_a($v) || _list_b($v);
     }
     function _list_a(string $v) {
-        $n = \strspn($v, '0123456789');
-        if (false !== \strpos(').', \substr($v, $n, 1))) {
-            if ($n + 1 === \strlen($v) || false !== \strpos(" \t", \substr($v, $n + 1, 1))) {
+        if ($v && false !== \strpos('*+-', $v[0])) {
+            if (_rule($v)) {
+                return false;
+            }
+            if (1 === \strlen($v) || false !== \strpos(" \t", $v[1])) {
                 return true;
             }
         }
         return false;
     }
     function _list_b(string $v) {
-        if ($v && false !== \strpos('*+-', $v[0])) {
-            if (1 === \strlen($v) || false !== \strpos(" \t", $v[1])) {
+        $n = \strspn($v, '0123456789');
+        // <https://spec.commonmark.org/0.31.2#example-266>
+        if ($n > 9) {
+            return false;
+        }
+        if (false !== \strpos(').', \substr($v, $n, 1))) {
+            if ($n + 1 === \strlen($v) || false !== \strpos(" \t", \substr($v, $n + 1, 1))) {
                 return true;
             }
         }
@@ -151,7 +170,7 @@ namespace x\markdown_filter\rows {
         if (false !== \strpos(',address,article,aside,base,basefont,blockquote,body,caption,center,col,colgroup,dd,details,dialog,dir,div,dl,dt,fieldset,figcaption,figure,footer,form,frame,frameset,h1,h2,h3,h4,h5,h6,head,header,hr,html,iframe,legend,li,link,main,menu,menuitem,nav,noframes,ol,optgroup,option,p,pre,param,script,search,section,source,style,summary,table,tbody,td,textarea,tfoot,th,thead,title,tr,track,ul,', ',' . ($n = \trim($t, '/')) . ',')) {
             return true;
         }
-        if ('<' . $t . '>' === $v || '>' === \substr($v, -1) && \preg_match('/^<' . $n . '(\s(?>"[^"]*"|\'[^\']*\'|[^>])*)?>$/', $v)) {
+        if ('<' . $t . '>' === (\strstr($v, "\n", true) ?: $v) || '>' === \substr($v, -1) && \preg_match('/^<' . $n . '(\s(?>"[^"]*"|\'[^\']*\'|[^>])*)?>$/', $v)) {
             return true;
         }
         return false;
@@ -170,7 +189,7 @@ namespace x\markdown_filter\rows {
                 $block = \call_user_func($fn, $row, $status);
                 continue;
             }
-            if ('>' === $row[0]) {
+            if (_quote($row)) {
                 $parts = \explode("\n", $row);
                 foreach ($parts as $k => $v) {
                     if ('>' === $v[0]) {
@@ -189,7 +208,7 @@ namespace x\markdown_filter\rows {
                 $block = \call_user_func($fn, \implode("\n", $parts), $status);
                 continue;
             }
-            if (false !== \strpos('*+-', $row[0]) && false !== \strpos(" \t", $row[1] ?? "")) {
+            if (_list_a($row)) {
                 $parts = \explode("\n", $row);
                 $n = 1 + \strspn(\substr($row, 1), " \t");
                 $fix = \substr($row, 0, $n);
@@ -211,9 +230,9 @@ namespace x\markdown_filter\rows {
                 $block = \call_user_func($fn, \implode("\n", $parts), $status);
                 continue;
             }
-            $n = \strspn($row, '0123456789');
-            if ($n <= 9 && false !== \strpos(').', \substr($row, $n, 1)) && false !== \strpos(" \t", \substr($row, $n + 1, 1))) {
+            if (_list_b($row)) {
                 $parts = \explode("\n", $row);
+                $n = \strspn($row, '0123456789');
                 $n = $n + 1 + \strspn(\substr($row, $n + 1), " \t");
                 $fix = \substr($row, 0, $n);
                 foreach ($parts as $k => $v) {
@@ -256,7 +275,8 @@ namespace x\markdown_filter\rows {
                 $row = \substr($row, $dent);
             }
             if ("" !== \trim($prev = $blocks[$block][0] ?? "")) {
-                if (($dent_prev = \strspn($prev, ' ')) < 4) {
+                $dent_prev = \strspn($prev, ' ');
+                if ($dent_prev < 4) {
                     $prev = \substr($prev, $dent_prev);
                 }
                 // Is in a code block?
@@ -291,12 +311,10 @@ namespace x\markdown_filter\rows {
                         // End of the HTML comment block?
                         if (false !== \strpos($row, '-->')) {
                             $blocks[$block][0] .= "\n" . $prefix . $row;
-                            $blocks[$block][1] = 0;
                             $block += 1;
                             continue;
                         }
                         $blocks[$block][0] .= "\n" . ("" !== $row ? $prefix . $row : "");
-                        $blocks[$block][1] = 0;
                         continue;
                     }
                     // Is in a character data block?
@@ -304,12 +322,10 @@ namespace x\markdown_filter\rows {
                         // End of the character data block?
                         if (false !== \strpos($row, ']]>')) {
                             $blocks[$block][0] .= "\n" . $prefix . $row;
-                            $blocks[$block][1] = 0;
                             $block += 1;
                             continue;
                         }
                         $blocks[$block][0] .= "\n" . ("" !== $row ? $prefix . $row : "");
-                        $blocks[$block][1] = 0;
                         continue;
                     }
                     // Is in a processing instruction block?
@@ -317,12 +333,10 @@ namespace x\markdown_filter\rows {
                         // End of the character data block?
                         if (false !== \strpos($row, '?>')) {
                             $blocks[$block][0] .= "\n" . $prefix . $row;
-                            $blocks[$block][1] = 0;
                             $block += 1;
                             continue;
                         }
                         $blocks[$block][0] .= "\n" . ("" !== $row ? $prefix . $row : "");
-                        $blocks[$block][1] = 0;
                         continue;
                     }
                     if ("" !== $row) {
@@ -332,8 +346,32 @@ namespace x\markdown_filter\rows {
                     $blocks[++$block] = [$prefix . $row, 1]; // End of the raw block
                     continue;
                 }
+                // Is a rule block?
+                if (_rule($prev)) {
+                    $blocks[++$block] = [$prefix . $row, 1];
+                    continue;
+                }
                 // Is in a list block?
                 if (_list_a($prev)) {
+                    // End of the list block?
+                    if ("" !== $row && $dent < 2) {
+                        if ("\n" === \substr($prev, -1)) {
+                            $blocks[$block][0] = \substr($blocks[$block][0], 0, -1);
+                            $blocks[++$block] = ["", 1];
+                        }
+                        // Maybe a paragraph, must be a lazy list…
+                        if (!_code($row) && !_list($row) && !_quote($row) && !_raw($row) && !_rule($row)) {
+                            $blocks[$block][0] .= "\n" . $prefix . $row;
+                            continue;
+                        }
+                        $blocks[++$block] = [$prefix . $row, _code($row) || _raw($row) ? 0 : (_quote($row) || _list($row) ? 2 : 1)];
+                        continue;
+                    }
+                    $blocks[++$block] = [$prefix . $row, 1];
+                    continue;
+                }
+                // Is in a list block?
+                if (_list_b($prev)) {
                     $n = \strspn($prev, '0123456789');
                     // End of the list block?
                     if ("" !== $row && $dent < $n + 1 + 1) {
@@ -341,24 +379,15 @@ namespace x\markdown_filter\rows {
                             $blocks[$block][0] = \substr($blocks[$block][0], 0, -1);
                             $blocks[++$block] = ["", 1];
                         }
-                        $blocks[++$block] = [$prefix . $row, _code($row) || _raw($row) ? 0 : (_quote($row) || _list($row) ? 2 : 1)];
-                        continue;
-                    }
-                    $blocks[$block][0] .= "\n" . ("" !== $row ? $prefix . $row : "");
-                    continue;
-                }
-                // Is in a list block?
-                if (_list_b($prev)) {
-                    // End of the list block?
-                    if ("" !== $row && $dent < 2) {
-                        if ("\n" === \substr($prev, -1)) {
-                            $blocks[$block][0] = \substr($blocks[$block][0], 0, -1);
-                            $blocks[++$block] = ["", 1];
+                        // Maybe a paragraph, must be a lazy list…
+                        if (!_code($row) && !_list($row) && !_quote($row) && !_raw($row) && !_rule($row)) {
+                            $blocks[$block][0] .= "\n" . $prefix . $row;
+                            continue;
                         }
                         $blocks[++$block] = [$prefix . $row, _code($row) || _raw($row) ? 0 : (_quote($row) || _list($row) ? 2 : 1)];
                         continue;
                     }
-                    $blocks[$block][0] .= "\n" . ("" !== $row ? $prefix . $row : "");
+                    $blocks[++$block] = [$prefix . $row, 1];
                     continue;
                 }
                 // Current block is a blank line…

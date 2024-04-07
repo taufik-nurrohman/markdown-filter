@@ -40,6 +40,7 @@ $out .= '</form>';
 $out .= '<div style="display:flex;flex-direction:row;gap:15px;">';
 $out .= '<div style="background:#fff;border:2px solid #080;color:#000;display:flex;flex:1;flex-direction:column;font:normal normal 13px/15px monospace;gap:1px;overflow:auto;padding:1px;white-space:pre;">';
 
+// For demonstration purpose
 foreach (x\markdown_filter\rows\split($content) as $row) {
     [$part, $status] = $row;
     $part = htmlspecialchars($chunk = $part);
@@ -72,6 +73,7 @@ foreach (x\markdown_filter\rows\split($content) as $row) {
 
 $out .= '</div>';
 
+// Actual usage
 $content = x\markdown_filter\rows($content, static function ($part, $status) {
     if (0 === $status) {
         return $part;
@@ -88,6 +90,12 @@ $content = x\markdown_filter\rows($content, static function ($part, $status) {
     if ('<' === $part[0] && '>' === substr($part, -1) && false !== strpos($part, ':') && false === strpos($part, "\n")) {
         return $prefix . "╔══════╗\n" . $prefix . "║ TEST ║\n" . $prefix . "╚══════╝";
     }
+    $part = x\markdown_filter\row($part, static function ($v, $status) {
+        if (0 === $status) {
+            return $v;
+        }
+        return strtr($v, [':)' => '😊']);
+    });
     return $prefix . $part;
 });
 
