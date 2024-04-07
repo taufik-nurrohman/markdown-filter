@@ -282,16 +282,16 @@ namespace x\markdown_filter\rows {
                 }
                 // Is in a code block?
                 if (_code_a($prev)) {
-                    // End of the code block?
-                    if ("" !== $row && $dent < 4) {
-                        if ("\n" === \substr($prev, -1)) {
-                            $blocks[$block][0] = \substr($blocks[$block][0], 0, -1);
-                            $blocks[++$block] = ["", 1];
-                        }
-                        $blocks[++$block] = [$prefix . $row, _code($row) || _raw($row) ? 0 : (_quote($row) || _list($row) ? 2 : 1)];
+                    if ("" === $row || $dent > 3) {
+                        $blocks[$block][0] .= "\n" . $prefix . $row;
                         continue;
                     }
-                    $blocks[$block][0] .= "\n" . ("" !== $row ? $prefix . $row : "");
+                    // End of the code block?
+                    if ("\n" === \substr(\rtrim($prev, " \t"), -1)) {
+                        $blocks[$block][0] = \substr(\rtrim($blocks[$block][0], " \t"), 0, -1);
+                        $blocks[++$block] = [$prefix, 1];
+                    }
+                    $blocks[++$block] = [$prefix . $row, _code($row) || _raw($row) ? 0 : (_list($row) || _quote($row) ? 2 : 1)];
                     continue;
                 }
                 // Is in a code block?
@@ -354,41 +354,39 @@ namespace x\markdown_filter\rows {
                 }
                 // Is in a list block?
                 if (_list_a($prev)) {
-                    // End of the list block?
-                    if ("" !== $row && $dent < 2) {
-                        if ("\n" === \substr($prev, -1)) {
-                            $blocks[$block][0] = \substr($blocks[$block][0], 0, -1);
-                            $blocks[++$block] = ["", 1];
-                        }
-                        // Maybe a paragraph, must be a lazy list…
-                        if (!_code($row) && !_list($row) && !_quote($row) && !_raw($row) && !_rule($row)) {
-                            $blocks[$block][0] .= "\n" . $prefix . $row;
-                            continue;
-                        }
-                        $blocks[++$block] = [$prefix . $row, _code($row) || _raw($row) ? 0 : (_quote($row) || _list($row) ? 2 : 1)];
+                    if ("" === $row || $dent > $dent_prev + 1) {
+                        $blocks[$block][0] .= "\n" . $prefix . $row;
                         continue;
                     }
-                    $blocks[++$block] = [$prefix . $row, 1];
+                    // End of the list block?
+                    if ("\n" === \substr(\rtrim($prev, " \t"), -1)) {
+                        $blocks[$block][0] = \substr(\rtrim($blocks[$block][0], " \t"), 0, -1);
+                        $blocks[++$block] = [$prefix, 1];
+                    // Lazy list?
+                    } else if (!_code($row) && !_header($row) && !_list($row) && !_quote($row) && !_raw($row) && !_rule($row)) {
+                        $blocks[$block][0] .= "\n" . $prefix . $row;
+                        continue;
+                    }
+                    $blocks[++$block] = [$prefix . $row, _list($row) ? 2 : 1];
                     continue;
                 }
                 // Is in a list block?
                 if (_list_b($prev)) {
                     $n = \strspn($prev, '0123456789');
-                    // End of the list block?
-                    if ("" !== $row && $dent < $n + 1 + 1) {
-                        if ("\n" === \substr($prev, -1)) {
-                            $blocks[$block][0] = \substr($blocks[$block][0], 0, -1);
-                            $blocks[++$block] = ["", 1];
-                        }
-                        // Maybe a paragraph, must be a lazy list…
-                        if (!_code($row) && !_list($row) && !_quote($row) && !_raw($row) && !_rule($row)) {
-                            $blocks[$block][0] .= "\n" . $prefix . $row;
-                            continue;
-                        }
-                        $blocks[++$block] = [$prefix . $row, _code($row) || _raw($row) ? 0 : (_quote($row) || _list($row) ? 2 : 1)];
+                    if ("" === $row || $dent > $dent_prev + $n + 1) {
+                        $blocks[$block][0] .= "\n" . $prefix . $row;
                         continue;
                     }
-                    $blocks[++$block] = [$prefix . $row, 1];
+                    // End of the list block?
+                    if ("\n" === \substr(\rtrim($prev, " \t"), -1)) {
+                        $blocks[$block][0] = \substr(\rtrim($blocks[$block][0], " \t"), 0, -1);
+                        $blocks[++$block] = [$prefix, 1];
+                    // Lazy list?
+                    } else if (!_code($row) && !_header($row) && !_list($row) && !_quote($row) && !_raw($row) && !_rule($row)) {
+                        $blocks[$block][0] .= "\n" . $prefix . $row;
+                        continue;
+                    }
+                    $blocks[++$block] = [$prefix . $row, _list($row) ? 2 : 1];
                     continue;
                 }
                 // Current block is a blank line…
@@ -412,7 +410,7 @@ namespace x\markdown_filter\rows {
                     continue;
                 }
                 // Start of a tight rule block
-                if (_rule($row)) {
+                if (_rule($row) && ('-' !== $row[0] || isset($row[1]) && false !== \strpos(" \t", $row[1]))) {
                     $blocks[++$block] = [$prefix . $row, 1];
                     $block += 1; // Force a new block after it
                     continue;
