@@ -42,7 +42,7 @@ $out .= '<div style="background:#fff;border:2px solid #080;color:#000;display:fl
 
 foreach (x\markdown_filter\rows\split($content) as $row) {
     [$part, $status] = $row;
-    $part = "" !== trim($part, " \t") ? htmlspecialchars($part) : '<br>';
+    $part = htmlspecialchars($chunk = $part);
     $part = preg_replace_callback('/^[ \t]+|[ \t]+$/m', static function ($m) {
         return strtr($m[0], [
             ' ' => '<span style="opacity:0.25;">·</span>'
@@ -52,8 +52,17 @@ foreach (x\markdown_filter\rows\split($content) as $row) {
         $out .= '<div style="border:2px solid #800;">' . $part . '</div>';
     } else if (1 === $status) {
         $out .= '<div style="border:2px solid #080;">';
-        foreach (x\markdown_filter\row\split($part) as $v) {
-            $out .= '<span style="color:#' . (0 === $v[1] ? '800' : '000') . ';">' . $v[0] . '</span>';
+        if ("" === $chunk) {
+            $out .= '<br>';
+        } else {
+            foreach (x\markdown_filter\row\split($chunk) as $v) {
+                $v[0] = htmlspecialchars($v[0]);
+                if (1 === $v[1]) {
+                    $out .= $v[0];
+                    continue;
+                }
+                $out .= '<span style="color:#800;">' . $v[0] . '</span>';
+            }
         }
         $out .= '</div>';
     } else {

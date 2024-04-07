@@ -34,12 +34,43 @@ namespace x\markdown_filter\row {
     }
     function split(string $content) {
         $chunks = [];
-        while (false !== ($chop = \strpbrk($content, '`'))) {
+        while (false !== ($chop = \strpbrk($content, '<&`'))) {
             if ("" !== ($v = \substr($content, 0, \strlen($content) - \strlen($chop)))) {
                 $content = \substr($content, \strlen($v));
                 $chunks[] = [$v, 1];
             }
-            if (0 === \strpos($chop, '`') && \preg_match('/(`+)[^`]+\1(?!`)/', $chop, $m)) {
+            if (0 === \strpos($chop, '<')) {
+                if (0 === \strpos($chop, '<!--')) {
+                    $content = \substr($content, $n = \strpos($chop, '-->') + 3);
+                    $chunks[] = [\substr($chop, 0, $n), 0];
+                    continue;
+                }
+                if (0 === \strpos($chop, '<![CDATA[')) {
+                    $content = \substr($content, $n = \strpos($chop, ']]>') + 3);
+                    $chunks[] = [\substr($chop, 0, $n)];
+                    continue;
+                }
+                if (0 === \strpos($chop, '<!')) {
+                    $content = \substr($content, $n = \strpos($chop, '>') + 1);
+                    $chunks[] = [\substr($chop, 0, $n)];
+                    continue;
+                }
+                if (0 === \strpos($chop, '<?')) {
+                    $content = \substr($content, $n = \strpos($chop, '?>') + 3);
+                    $chunks[] = [\substr($chop, 0, $n), 0];
+                    continue;
+                }
+                if (\preg_match('/^<>/', $chop, $m)) {
+                    $content = \substr($content, \strlen($m[0]));
+                    $chunks[] = [$m[0], 0];
+                    continue;
+                }
+                $content = \substr($content, 1);
+                $chunks[] = ['<', 1];
+                continue;
+            }
+            if (0 === \strpos($chop, '&')) {}
+            if (0 === \strpos($chop, '`') && \preg_match('/^(`+)[^`]+\1(?!`)/', $chop, $m)) {
                 $content = \substr($content, \strlen($m[0]));
                 $chunks[] = [$m[0], 0];
                 continue;
@@ -117,7 +148,7 @@ namespace x\markdown_filter\rows {
             return true;
         }
         $n = \trim($t, '/');
-        if (false !== \strpos(',address,article,aside,base,basefont,blockquote,body,caption,center,col,colgroup,dd,details,dialog,dir,div,dl,dt,fieldset,figcaption,figure,footer,form,frame,frameset,h1,h2,h3,h4,h5,h6,head,header,hr,html,iframe,legend,li,link,main,menu,menuitem,nav,noframes,ol,optgroup,option,p,pre,param,script,search,section,source,style,summary,table,tbody,td,textarea,tfoot,th,thead,title,tr,track,ul,', ',' . ($n = \trim($t)) . ',')) {
+        if (false !== \strpos(',address,article,aside,base,basefont,blockquote,body,caption,center,col,colgroup,dd,details,dialog,dir,div,dl,dt,fieldset,figcaption,figure,footer,form,frame,frameset,h1,h2,h3,h4,h5,h6,head,header,hr,html,iframe,legend,li,link,main,menu,menuitem,nav,noframes,ol,optgroup,option,p,pre,param,script,search,section,source,style,summary,table,tbody,td,textarea,tfoot,th,thead,title,tr,track,ul,', ',' . ($n = \trim($t, '/')) . ',')) {
             return true;
         }
         if ('<' . $t . '>' === $v || '>' === \substr($v, -1) && \preg_match('/^<' . $n . '(\s(?>"[^"]*"|\'[^\']*\'|[^>])*)?>$/', $v)) {
@@ -130,7 +161,7 @@ namespace x\markdown_filter\rows {
             "\t" => "",
             ' ' => ""
         ]);
-        return $v && false !== \strpos('*-_', $v[0]) && \strlen($test) === ($n = \strspn($v, $v[0])) && $n >= 3;
+        return $v && false !== \strpos('*-_', $v[0]) && \strlen($test) === ($n = \strspn($test, $v[0])) && $n >= 3;
     }
     function join(array $blocks, callable $fn) {
         foreach ($blocks as &$block) {
