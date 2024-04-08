@@ -44,13 +44,8 @@ $out .= '<div style="background:#fff;border:2px solid #080;color:#000;display:fl
 foreach (x\markdown_filter\rows\split($content) as $row) {
     [$part, $status] = $row;
     $part = htmlspecialchars($chunk = $part);
-    $part = preg_replace_callback('/^[ \t]+|[ \t]+$/m', static function ($m) {
-        return strtr($m[0], [
-            ' ' => '<span style="opacity:0.25;">·</span>'
-        ]);
-    }, $part);
     if (0 === $status) {
-        $out .= '<div style="border:2px solid #800;">' . $part . '</div>';
+        $out .= '<div style="background:#f99;border:2px solid #800;">' . $part . '</div>';
     } else if (1 === $status) {
         $out .= '<div style="border:2px solid #080;">';
         if ("" === $chunk) {
@@ -62,7 +57,7 @@ foreach (x\markdown_filter\rows\split($content) as $row) {
                     $out .= $v[0];
                     continue;
                 }
-                $out .= '<span style="color:#800;">' . $v[0] . '</span>';
+                $out .= '<span style="background:#f99;">' . $v[0] . '</span>';
             }
         }
         $out .= '</div>';

@@ -1,6 +1,8 @@
 PHP Markdown Filter
 ===================
 
+![index.php](https://img.shields.io/github/size/taufik-nurrohman/markdown-filter/index.php?branch=main&color=%234f5d95&label=index.php&labelColor=%231f2328&style=flat-square)
+
 Motivation
 ----------
 
@@ -13,7 +15,12 @@ as-is, as plain text, without looking like it’s been marked up with tags or fo
 Typically, they will simply tell people to use raw HTML syntax if their wishes are too complex and/or not in line with
 Markdown’s philosophy. Markdown parser generally does not prohibit people from doing so.
 
-Etc... etc...
+People who just know how to search and replace text with PHP often give naive suggestions, such as telling people to use
+regular expressions to replace text directly in the Markdown document, which often ends up with people replacing text in
+the wrong places, such as replacing text inside a code block syntax that should be left as it is.
+
+This filter can be used to separate parts of a Markdown document into blocks and spans, so that you can replace text
+only in certain blocks and spans that you consider safe.
 
 Usage
 -----
@@ -42,20 +49,20 @@ require 'vendor/autoload.php';
 
 $content = file_get_contents('.\path\to\file.md');
 
-$content = filter_rows($content, function ($chunk, $status) {
+$content = filter_rows($content, function ($block, $status) {
     if (0 === $status || 2 === $status) {
-        return $chunk;
+        return $block;
     }
-    return filter_row($row, function ($chunk, $status) {
+    return filter_row($block, function ($chop, $status) {
         if (0 === $status) {
-            return $chunk;
+            return $chop;
         }
-        // Safely convert `~~asdf~~` syntax to `<del>asdf</del>`
-        return preg_replace('/~~([^\n]+)~~/', '<del>$1</del>', $chunk);
+        // Safely replace `:)` with `😊`
+        return strtr($chop, [':)' => '&#128522;']);
     });
 });
 
-// You can now convert the Markdown string to HTML string using your preferred Markdown converter
+// You can now convert the Markdown document to HTML using your preferred Markdown converter
 echo (new ParsedownExtra)->text($content);
 ~~~
 
@@ -73,21 +80,64 @@ require 'index.php';
 
 $content = file_get_contents('.\path\to\file.md');
 
-$content = filter_rows($content, function ($chunk, $status) {
+$content = filter_rows($content, function ($block, $status) {
     if (0 === $status || 2 === $status) {
-        return $chunk;
+        return $block;
     }
-    return filter_row($row, function ($chunk, $status) {
+    return filter_row($block, function ($chop, $status) {
         if (0 === $status) {
-            return $chunk;
+            return $chop;
         }
-        // Safely convert `~~asdf~~` syntax to `<del>asdf</del>`
-        return preg_replace('/~~([^\n]+)~~/', '<del>$1</del>', $chunk);
+        // Safely replace `:)` with `😊`
+        return strtr($chop, [':)' => '&#128522;']);
     });
 });
 
-// You can now convert the Markdown string to HTML string using your preferred Markdown converter
+// You can now convert the Markdown document to HTML using your preferred Markdown converter
 echo (new ParsedownExtra)->text($content);
+~~~
+
+The main goal of this project is to introduce [the “embed” syntax for Markdown][1], which I believe has never been
+discussed before (for this kind of syntax). That’s why I implemented this filter on the test page as a sort of utility
+to safely replace the syntax:
+
+![Example][2]
+
+ [1]: https://github.com/taufik-nurrohman/markdown
+ [2]: https://github.com/taufik-nurrohman/markdown-filter/assets/1669261/505c140a-2e0a-4788-951d-afcaf0cd88e0
+
+You can also use this filter to strip HTML tags other than those that are written in Markdown’s code syntax. People
+usually write HTML syntax there to share a piece of code in your comments section:
+
+~~~ php
+<?php
+
+use function x\markdown_filter\row as filter_row;
+use function x\markdown_filter\rows as filter_rows;
+
+if ('POST' === $_SERVER['REQUEST_METHOD'] && isset($_POST['comment']['content'])) {
+    $_POST['comment']['content'] = filter_rows($_POST['comment']['content'], function ($block, $status) {
+        if (0 === $status || 2 === $status) {
+            $dent = strspn($block, ' ');
+            if ($dent >= 4) {
+                return $block; // Code block (indent-style)
+            }
+            $test = substr($block, $dent);
+            if (0 === strpos($test, '```') || 0 === strpos($test, '~~~')) {
+                return $block; // Code block (fence-style)
+            }
+            return strip_tags($block);
+        }
+        return filter_row($block, function ($chop, $status) {
+            if (0 === $status) {
+                if (0 === strpos($chop, '`')) {
+                    return $chop; // Code span
+                }
+            }
+            return strip_tags($chop);
+        });
+    });
+}
 ~~~
 
 Tests

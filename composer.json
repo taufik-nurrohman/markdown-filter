@@ -1,0 +1,43 @@
+{
+  "authors": [
+    {
+      "homepage": "https://github.com/taufik-nurrohman",
+      "name": "Taufik Nurrohman",
+      "role": "Developer"
+    }
+  ],
+  "autoload": {
+    "files": [
+      "index.php"
+    ]
+  },
+  "description": "Safely replace text in a Markdown document.",
+  "funding": [
+    {
+      "type": "other",
+      "url": "https://paypal.me/tatautaufik"
+    }
+  ],
+  "homepage": "https://github.com/taufik-nurrohman/markdown-filter",
+  "keywords": [
+    "commonmark",
+    "converter",
+    "extra",
+    "extra",
+    "filter",
+    "markdown",
+    "parser",
+    "safe",
+    "security"
+  ],
+  "license": "MIT",
+  "name": "taufik-nurrohman/markdown-filter",
+  "require": {
+    "php": ">=7.1"
+  },
+  "support": {
+    "docs": "https://github.com/taufik-nurrohman/markdown-filter#readme",
+    "issues": "https://github.com/taufik-nurrohman/markdown-filter/issues"
+  },
+  "type": "library"
+}
