@@ -27,6 +27,11 @@ namespace x\markdown_filter\row {
         return \implode("", $chunks);
     }
     function split(string $content) {
+        // Normalize line break(s)
+        $content = \trim(\strtr($content, [
+            "\r\n" => "\n",
+            "\r" => "\n"
+        ]), "\n");
         $chops = [];
         while (false !== ($chop = \strpbrk($content, '<&`'))) {
             if ("" !== ($v = \substr($content, 0, \strlen($content) - \strlen($chop)))) {
@@ -114,7 +119,7 @@ namespace x\markdown_filter\rows {
         if (0 === $n || $n > 6) {
             return false;
         }
-        if ($n === \strlen($v) || false !== \strpos(" \t", \substr($v, $n, 1))) {
+        if ($n === \strlen($v) || ' ' === \substr($v, $n, 1)) {
             return true;
         }
         return false;
@@ -127,7 +132,7 @@ namespace x\markdown_filter\rows {
             if (_rule($v)) {
                 return false;
             }
-            if (1 === \strlen($v) || false !== \strpos(" \t", $v[1])) {
+            if (1 === \strlen($v) || ' ' === $v[1]) {
                 return true;
             }
         }
@@ -140,14 +145,14 @@ namespace x\markdown_filter\rows {
             return false;
         }
         if (false !== \strpos(').', \substr($v, $n, 1))) {
-            if ($n + 1 === \strlen($v) || false !== \strpos(" \t", \substr($v, $n + 1, 1))) {
+            if ($n + 1 === \strlen($v) || ' ' === \substr($v, $n + 1, 1)) {
                 return true;
             }
         }
         return false;
     }
     function _note(string $v) {
-        return 0 === \strpos($v, '[^') && \preg_match('/^\[\^[^]]+\]:(\s|$)/', $v);
+        return 0 === \strpos($v, '[^') && \preg_match('/^\[\^(?>\\\\.|[^][])+\]:(\s|$)/', $v);
     }
     function _quote(string $v) {
         return $v && '>' === $v[0];
@@ -156,7 +161,7 @@ namespace x\markdown_filter\rows {
         if (!$v || '<' !== $v[0]) {
             return false;
         }
-        $t = \substr(\strtok($v = \trim($v), " \n\r\t>"), 1);
+        $t = \substr(\strtok($v = \trim($v), " \n>"), 1);
         if (false !== \strpos($t, ':') || false !== \strpos($t, '@')) {
             return false;
         }
@@ -174,10 +179,7 @@ namespace x\markdown_filter\rows {
         return false;
     }
     function _rule(string $v) {
-        $test = \strtr($v = \trim($v), [
-            "\t" => "",
-            ' ' => ""
-        ]);
+        $test = \strtr($v = \trim($v), [' ' => ""]);
         return $v && false !== \strpos('*-_', $v[0]) && \strlen($test) === ($n = \strspn($test, $v[0])) && $n >= 3;
     }
     function join(array $blocks, callable $fn) {
@@ -234,7 +236,7 @@ namespace x\markdown_filter\rows {
                 $dent = 0 === $dent ? $n : $dent;
                 foreach ($parts as $k => $v) {
                     if (0 === $k) {
-                        $parts[$k] = $prefix . $fix . $v;
+                        $parts[$k] = $prefix . $fix . (0 === $dent_fix ? "\n\n" . \str_repeat(' ', $dent) : "") . $v;
                         continue;
                     }
                     if ("" === \trim($v)) {
@@ -336,11 +338,15 @@ namespace x\markdown_filter\rows {
         return \implode("\n", $blocks);
     }
     function split(string $content) {
+        // Normalize line break(s)
+        $content = \trim(\strtr($content, [
+            "\r\n" => "\n",
+            "\r" => "\n"
+        ]), "\n");
         $block = -1;
         $blocks = [];
         $rows = \explode("\n", $content);
         foreach ($rows as $row) {
-            // TODO: Keep the tab character(s) as-is!
             while (false !== ($before = \strstr($row, "\t", true))) {
                 $v = \strlen($before);
                 $row = $before . \str_repeat(' ', 4 - $v % 4) . \substr($row, $v + 1);
@@ -363,11 +369,11 @@ namespace x\markdown_filter\rows {
                         continue;
                     }
                     // End of the code block?
-                    if ("\n" === \substr(\rtrim($prev, " \t"), -1)) {
-                        $blocks[$block][0] = \substr(\rtrim($blocks[$block][0], " \t"), 0, -1);
+                    if ("\n" === \substr(\rtrim($prev, ' '), -1)) {
+                        $blocks[$block][0] = \substr(\rtrim($blocks[$block][0], ' '), 0, -1);
                         $blocks[++$block] = [$prefix, 1];
                     }
-                    $blocks[++$block] = [$prefix . $row, _code($row) || _raw($row) ? 0 : (_list($row) || _quote($row) ? 2 : 1)];
+                    $blocks[++$block] = [$prefix . $row, _code_b($row) || _raw($row) ? 0 : (_list($row) || _note($row) || _quote($row) ? 2 : 1)];
                     continue;
                 }
                 // Is in a code block?
@@ -416,7 +422,23 @@ namespace x\markdown_filter\rows {
                         $blocks[$block][0] .= "\n" . ("" !== $row ? $prefix . $row : "");
                         continue;
                     }
+                    $t = \substr(\strtok($prev, " \n>"), 1);
                     if ("" !== $row) {
+                        // <https://spec.commonmark.org/0.31.2#html-block>
+                        if (false !== \strpos(',pre,script,style,textarea,', ',' . $t . ',') && false !== \strpos($prev, '</' . $t . '>')) {
+                            // End of the raw block?
+                            if ("\n" === \substr(\rtrim($prev, ' '), -1)) {
+                                $blocks[$block][0] = \substr(\rtrim($blocks[$block][0], ' '), 0, -1);
+                                $blocks[++$block] = [$prefix, 1];
+                            }
+                            $blocks[++$block] = [$prefix . $row, _code_b($row) || _raw($row) ? 0 : (_list($row) || _note($row) || _quote($row) ? 2 : 1)];
+                            continue;
+                        }
+                        $blocks[$block][0] .= "\n" . $prefix . $row;
+                        continue;
+                    }
+                    // <https://spec.commonmark.org/0.31.2#html-block>
+                    if (false !== \strpos(',pre,script,style,textarea,', ',' . $t . ',')) {
                         $blocks[$block][0] .= "\n" . $prefix . $row;
                         continue;
                     }
@@ -435,15 +457,15 @@ namespace x\markdown_filter\rows {
                         continue;
                     }
                     // End of the list block?
-                    if ("\n" === \substr(\rtrim($prev, " \t"), -1)) {
-                        $blocks[$block][0] = \substr(\rtrim($blocks[$block][0], " \t"), 0, -1);
+                    if ("\n" === \substr(\rtrim($prev, ' '), -1)) {
+                        $blocks[$block][0] = \substr(\rtrim($blocks[$block][0], ' '), 0, -1);
                         $blocks[++$block] = [$prefix, 1];
                     // Lazy list?
                     } else if (!_code($row) && !_header($row) && !_list($row) && !_note($row) && !_quote($row) && !_raw($row) && !_rule($row)) {
                         $blocks[$block][0] .= "\n" . $prefix . $row;
                         continue;
                     }
-                    $blocks[++$block] = [$prefix . $row, _list($row) || _note($row) || _quote($row) ? 2 : 1];
+                    $blocks[++$block] = [$prefix . $row, _code_b($row) || _raw($row) ? 0 : (_list($row) || _note($row) || _quote($row) ? 2 : 1)];
                     continue;
                 }
                 // Is in a list block?
@@ -454,15 +476,15 @@ namespace x\markdown_filter\rows {
                         continue;
                     }
                     // End of the list block?
-                    if ("\n" === \substr(\rtrim($prev, " \t"), -1)) {
-                        $blocks[$block][0] = \substr(\rtrim($blocks[$block][0], " \t"), 0, -1);
+                    if ("\n" === \substr(\rtrim($prev, ' '), -1)) {
+                        $blocks[$block][0] = \substr(\rtrim($blocks[$block][0], ' '), 0, -1);
                         $blocks[++$block] = [$prefix, 1];
                     // Lazy list?
                     } else if (!_code($row) && !_header($row) && !_list($row) && !_note($row) && !_quote($row) && !_raw($row) && !_rule($row)) {
                         $blocks[$block][0] .= "\n" . $prefix . $row;
                         continue;
                     }
-                    $blocks[++$block] = [$prefix . $row, _list($row) || _note($row) || _quote($row) ? 2 : 1];
+                    $blocks[++$block] = [$prefix . $row, _code_b($row) || _raw($row) ? 0 : (_list($row) || _note($row) || _quote($row) ? 2 : 1)];
                     continue;
                 }
                 // Is in a note block?
@@ -472,11 +494,11 @@ namespace x\markdown_filter\rows {
                         continue;
                     }
                     // End of the note block?
-                    if ("\n" === \substr(\rtrim($prev, " \t"), -1)) {
-                        $blocks[$block][0] = \substr(\rtrim($blocks[$block][0], " \t"), 0, -1);
+                    if ("\n" === \substr(\rtrim($prev, ' '), -1)) {
+                        $blocks[$block][0] = \substr(\rtrim($blocks[$block][0], ' '), 0, -1);
                         $blocks[++$block] = [$prefix, 1];
                     }
-                    $blocks[++$block] = [$prefix . $row, _list($row) || _note($row) || _quote($row) ? 2 : 1];
+                    $blocks[++$block] = [$prefix . $row, _code_b($row) || _raw($row) ? 0 : (_list($row) || _note($row) || _quote($row) ? 2 : 1)];
                     continue;
                 }
                 // Current block is a blank line…
@@ -505,7 +527,7 @@ namespace x\markdown_filter\rows {
                     continue;
                 }
                 // Start of a tight rule block
-                if (_rule($row) && ('-' !== $row[0] || isset($row[1]) && false !== \strpos(" \t", $row[1]))) {
+                if (_rule($row) && ('-' !== $row[0] || ' ' === ($row[1] ?? ""))) {
                     $blocks[++$block] = [$prefix . $row, 1];
                     $block += 1; // Force a new block after it
                     continue;

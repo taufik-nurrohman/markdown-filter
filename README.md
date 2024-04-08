@@ -97,6 +97,12 @@ $content = filter_rows($content, function ($block, $status) {
 echo (new ParsedownExtra)->text($content);
 ~~~
 
+The `$status` variable shows whether or not a part of the document is safe for any kind of text substitutions. For now,
+it can have the value set to `0`, `1`, or `2`. A value of `0` means that the part of the document is generally not safe
+for any kind of text substitutions. It is typically contained in the code and raw HTML chunks. A value of `2` means that
+a block can contain other blocks, so it would be better to skip it as well, because indentation usually has a different
+meaning in this situation, until then this filter reaches into the inner content of that block.
+
 The main goal of this project is to introduce [the “embed” syntax for Markdown][1], which I believe has never been
 discussed before (for this kind of syntax). That’s why I implemented this filter on the test page as a sort of utility
 to safely replace the syntax:

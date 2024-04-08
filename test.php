@@ -8,7 +8,8 @@ $content = file_get_contents(__DIR__ . '/test.md');
 if ($attributes = !empty($_GET['attributes'])) {
     $content = strtr($content, [
         '<asdf>' => '<asdf asdf="asdf">',
-        '<div>' => '<div asdf="asdf">'
+        '<div>' => '<div asdf="asdf">',
+        '<pre>' => '<pre asdf="asdf">'
     ]);
 }
 
@@ -32,7 +33,7 @@ $out .= '<p>Add indent level: <input max="10" min="0" name="dent" onfocus="this.
 $out .= '<p>Add attributes to the HTML elements: <input' . ($attributes ? ' checked' : "") . ' name="attributes" type="checkbox" value="1" style="display:inline-block;margin:0;padding:0;vertical-align:middle;"></p>';
 $out .= '<p>';
 $out .= '<button type="submit">';
-$out .= 'Run Test';
+$out .= 'Test';
 $out .= '</button>';
 $out .= '</p>';
 $out .= '</form>';
