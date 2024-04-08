@@ -220,8 +220,6 @@ namespace x\markdown_filter\rows {
                     }
                     $parts[$k] = ("" === $v ? "" : \str_repeat(' ', $dent) . $v);
                 }
-                echo json_encode([$dent,$parts[0]]);
-                echo '<br/>';
                 $block = \call_user_func($fn, \implode("\n", $parts), $status);
                 continue;
             }
