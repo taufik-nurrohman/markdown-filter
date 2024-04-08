@@ -152,6 +152,9 @@ namespace x\markdown_filter\rows {
         }
         return false;
     }
+    function _note(string $v) {
+        return 0 === \strpos($v, '[^') && \preg_match('/^\[\^[^]]+\]:(\s|$)/', $v);
+    }
     function _quote(string $v) {
         return $v && '>' === $v[0];
     }
@@ -188,6 +191,36 @@ namespace x\markdown_filter\rows {
             [$row, $status] = $block;
             if ("" === $row || 0 === $status) {
                 $block = \call_user_func($fn, $row, $status);
+                continue;
+            }
+            if (_note($row)) {
+                $parts = \explode("\n", $row);
+                $fix = \substr($parts[0], 0, $n = \strpos($parts[0], ']:') + 2);
+                $parts[0] = \substr($parts[0], $n);
+                $dent = ("" !== $parts[0] ? \strlen($fix) : 1) + 1;
+                foreach ($parts as $k => $v) {
+                    if (0 === $k) {
+                        continue;
+                    }
+                    if (($n = \strspn($v, " \t")) <= $dent) {
+                        $parts[$k] = \substr($v, $n);
+                    }
+                }
+                $row = join(split(\implode("\n", $parts)), $fn);
+                $parts = \explode("\n", $row);
+                foreach ($parts as $k => $v) {
+                    if (0 === $k && $dent > 2) {
+                        $parts[$k] = $v;
+                        continue;
+                    }
+                    if (\strspn($v, " \t") >= $dent) {
+                        $parts[$k] = $v;
+                        continue;
+                    }
+                    // TODO
+                    $parts[$k] = ("" === $v ? "" : \str_repeat(' ', $dent) . $v);
+                }
+                $block = \call_user_func($fn, $fix . \implode("\n", $parts), $status);
                 continue;
             }
             if (_quote($row)) {
@@ -363,11 +396,11 @@ namespace x\markdown_filter\rows {
                         $blocks[$block][0] = \substr(\rtrim($blocks[$block][0], " \t"), 0, -1);
                         $blocks[++$block] = [$prefix, 1];
                     // Lazy list?
-                    } else if (!_code($row) && !_header($row) && !_list($row) && !_quote($row) && !_raw($row) && !_rule($row)) {
+                    } else if (!_code($row) && !_header($row) && !_list($row) && !_note($row) && !_quote($row) && !_raw($row) && !_rule($row)) {
                         $blocks[$block][0] .= "\n" . $prefix . $row;
                         continue;
                     }
-                    $blocks[++$block] = [$prefix . $row, _list($row) ? 2 : 1];
+                    $blocks[++$block] = [$prefix . $row, _list($row) || _note($row) || _quote($row) ? 2 : 1];
                     continue;
                 }
                 // Is in a list block?
@@ -382,11 +415,25 @@ namespace x\markdown_filter\rows {
                         $blocks[$block][0] = \substr(\rtrim($blocks[$block][0], " \t"), 0, -1);
                         $blocks[++$block] = [$prefix, 1];
                     // Lazy list?
-                    } else if (!_code($row) && !_header($row) && !_list($row) && !_quote($row) && !_raw($row) && !_rule($row)) {
+                    } else if (!_code($row) && !_header($row) && !_list($row) && !_note($row) && !_quote($row) && !_raw($row) && !_rule($row)) {
                         $blocks[$block][0] .= "\n" . $prefix . $row;
                         continue;
                     }
-                    $blocks[++$block] = [$prefix . $row, _list($row) ? 2 : 1];
+                    $blocks[++$block] = [$prefix . $row, _list($row) || _note($row) || _quote($row) ? 2 : 1];
+                    continue;
+                }
+                // Is in a note block?
+                if (_note($prev)) {
+                    if ("" === $row || $dent > $dent_prev) {
+                        $blocks[$block][0] .= "\n" . $prefix . $row;
+                        continue;
+                    }
+                    // End of the note block?
+                    if ("\n" === \substr(\rtrim($prev, " \t"), -1)) {
+                        $blocks[$block][0] = \substr(\rtrim($blocks[$block][0], " \t"), 0, -1);
+                        $blocks[++$block] = [$prefix, 1];
+                    }
+                    $blocks[++$block] = [$prefix . $row, _list($row) || _note($row) || _quote($row) ? 2 : 1];
                     continue;
                 }
                 // Current block is a blank line…
@@ -397,6 +444,11 @@ namespace x\markdown_filter\rows {
                 // Start of a tight code block
                 if (_code_b($row)) {
                     $blocks[++$block] = [$prefix . $row, 0];
+                    continue;
+                }
+                // Start of a tight note block
+                if (_note($row)) {
+                    $blocks[++$block] = [$prefix . $row, 2];
                     continue;
                 }
                 // Start of a tight quote block
@@ -442,6 +494,11 @@ namespace x\markdown_filter\rows {
             }
             // Start of a list block
             if (_list($row)) {
+                $blocks[++$block] = [$prefix . $row, 2];
+                continue;
+            }
+            // Start of a note block
+            if (_note($row)) {
                 $blocks[++$block] = [$prefix . $row, 2];
                 continue;
             }
