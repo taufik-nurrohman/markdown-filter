@@ -189,8 +189,24 @@ namespace x\markdown_filter\rows {
     function join(array $blocks, callable $fn) {
         foreach ($blocks as &$block) {
             [$row, $status] = $block;
+            $dent = \strspn($row, ' ');
+            $prefix = "";
+            if ($dent < 4) {
+                $prefix = \substr($row, 0, $dent);
+                $row = \strtr(\substr($row, $dent), [
+                    "\n" . $prefix => "\n"
+                ]);
+            }
             if ("" === $row || 0 === $status) {
-                $block = \call_user_func($fn, $row, $status);
+                $parts = \explode("\n", $row);
+                foreach ($parts as $k => $v) {
+                    if ("" === \trim($v)) {
+                        $parts[$k] = "";
+                        continue;
+                    }
+                    $parts[$k] = $prefix . $v;
+                }
+                $block = \call_user_func($fn, \implode("\n", $parts), $status);
                 continue;
             }
             if (_note($row)) {
@@ -198,15 +214,24 @@ namespace x\markdown_filter\rows {
                 $fix = \substr($parts[0], 0, $n = \strpos($parts[0], ']:') + 2);
                 $parts[0] = \substr($parts[0], $n);
                 $dent = 0;
+                $dent_fix = "" === $parts[0] ? 0 : \strlen($fix);
                 foreach ($parts as $k => $v) {
                     if (0 === $k) {
                         continue;
                     }
-                    $d = \strspn($v, " \t");
+                    $d = \strspn($v, ' ');
                     if (0 === $dent || $d < $dent) {
                         $dent = $d;
                     }
                     if ($dent > 0) {
+                        if ($dent_fix > 0) {
+                            $parts[$k] = \substr($v, $dent_fix);
+                            continue;
+                        }
+                        if ($dent > 4) {
+                            $parts[$k] = \substr($v, $dent - 4);
+                            continue;
+                        }
                         $parts[$k] = \substr($v, $dent);
                     }
                 }
@@ -215,10 +240,18 @@ namespace x\markdown_filter\rows {
                 $dent = 0 === $dent ? $n : $dent;
                 foreach ($parts as $k => $v) {
                     if (0 === $k) {
-                        $parts[$k] = $fix . $v;
+                        $parts[$k] = $prefix . $fix . $v;
                         continue;
                     }
-                    $parts[$k] = ("" === $v ? "" : \str_repeat(' ', $dent) . $v);
+                    if ("" === \trim($v)) {
+                        $parts[$k] = "";
+                        continue;
+                    }
+                    if ($dent_fix > 0) {
+                        $parts[$k] = $prefix . \str_repeat(' ', $dent_fix) . $v;
+                        continue;
+                    }
+                    $parts[$k] = $prefix . \str_repeat(' ', $dent) . $v;
                 }
                 $block = \call_user_func($fn, \implode("\n", $parts), $status);
                 continue;
@@ -237,17 +270,17 @@ namespace x\markdown_filter\rows {
                 $row = join(split(\implode("\n", $parts)), $fn);
                 $parts = \explode("\n", $row);
                 foreach ($parts as $k => $v) {
-                    $parts[$k] = ("" === $v ? '>' : '> ' . $v);
+                    $parts[$k] = $prefix . ("" === $v ? '>' : '> ' . $v);
                 }
                 $block = \call_user_func($fn, \implode("\n", $parts), $status);
                 continue;
             }
             if (_list_a($row)) {
                 $parts = \explode("\n", $row);
-                $n = 1 + \strspn(\substr($row, 1), " \t");
+                $n = 1 + \strspn(\substr($row, 1), ' ');
                 $fix = \substr($row, 0, $n);
                 foreach ($parts as $k => $v) {
-                    if (0 === $k || \strspn($v, " \t") >= $n) {
+                    if (0 === $k || \strspn($v, ' ') >= $n) {
                         $parts[$k] = \substr($v, $n);
                         continue;
                     }
@@ -256,10 +289,14 @@ namespace x\markdown_filter\rows {
                 $parts = \explode("\n", $row);
                 foreach ($parts as $k => $v) {
                     if (0 === $k) {
-                        $parts[$k] = $fix . $v;
+                        $parts[$k] = $prefix . $fix . $v;
                         continue;
                     }
-                    $parts[$k] = ("" === $v ? "" : \str_repeat(' ', $n) . $v);
+                    if ("" === \trim($v)) {
+                        $parts[$k] = "";
+                        continue;
+                    }
+                    $parts[$k] = $prefix . \str_repeat(' ', $n) . $v;
                 }
                 $block = \call_user_func($fn, \implode("\n", $parts), $status);
                 continue;
@@ -267,10 +304,10 @@ namespace x\markdown_filter\rows {
             if (_list_b($row)) {
                 $parts = \explode("\n", $row);
                 $n = \strspn($row, '0123456789');
-                $n = $n + 1 + \strspn(\substr($row, $n + 1), " \t");
+                $n = $n + 1 + \strspn(\substr($row, $n + 1), ' ');
                 $fix = \substr($row, 0, $n);
                 foreach ($parts as $k => $v) {
-                    if (0 === $k || \strspn($v, " \t") >= $n) {
+                    if (0 === $k || \strspn($v, ' ') >= $n) {
                         $parts[$k] = \substr($v, $n);
                         continue;
                     }
@@ -279,15 +316,27 @@ namespace x\markdown_filter\rows {
                 $parts = \explode("\n", $row);
                 foreach ($parts as $k => $v) {
                     if (0 === $k) {
-                        $parts[$k] = $fix . $v;
+                        $parts[$k] = $prefix . $fix . $v;
                         continue;
                     }
-                    $parts[$k] = ("" === $v ? "" : \str_repeat(' ', $n) . $v);
+                    if ("" === \trim($v)) {
+                        $parts[$k] = "";
+                        continue;
+                    }
+                    $parts[$k] = $prefix . \str_repeat(' ', $n) . $v;
                 }
                 $block = \call_user_func($fn, \implode("\n", $parts), $status);
                 continue;
             }
-            $block = \call_user_func($fn, $row, $status);
+            $parts = \explode("\n", $row);
+            foreach ($parts as $k => $v) {
+                if ("" === \trim($v)) {
+                    $parts[$k] = "";
+                    continue;
+                }
+                $parts[$k] = $prefix . $v;
+            }
+            $block = \call_user_func($fn, \implode("\n", $parts), $status);
         }
         unset($block);
         return \implode("\n", $blocks);
