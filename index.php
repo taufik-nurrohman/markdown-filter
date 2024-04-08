@@ -1,11 +1,5 @@
 <?php
 
-namespace x {
-    function markdown_filter(?string $content, callable $fn): ?string {
-
-    }
-}
-
 namespace x\markdown_filter {
     function row(?string $content, callable $fn): ?string {
         if ("" === ($content = (string) $content)) {
@@ -61,13 +55,13 @@ namespace x\markdown_filter\row {
                     $chops[] = [$m[0], 0];
                     continue;
                 }
-                // <https://spec.commonmark.org/0.30#raw-html>
+                // <https://spec.commonmark.org/0.31.2#raw-html>
                 if (\preg_match('/^<\/[a-z][a-z\d-]*\s*>/i', $chop, $m)) {
                     $content = \substr($content, \strlen($m[0]));
                     $chops[] = [$m[0], 0];
                     continue;
                 }
-                // <https://spec.commonmark.org/0.30#raw-html>
+                // <https://spec.commonmark.org/0.31.2#raw-html>
                 if (\preg_match('/^<[a-z][a-z\d-]*(?>\s+[a-z:_][\w.:-]*(?>\s*=\s*(?>"[^"]*"|\'[^\']*\'|[^\s"\'<=>`]+)?)?)*\s*\/?>/i', $chop, $m)) {
                     $content = \substr($content, \strlen($m[0]));
                     $chops[] = [$m[0], 0];
@@ -524,6 +518,13 @@ namespace x\markdown_filter\rows {
                 }
                 // Start of a tight list block
                 if (_list($row)) {
+                    if (_list_b($row) && 1 === \strspn($row, '0123456789')) {
+                        // <https://spec.commonmark.org/0.31.2#example-304>
+                        if ('1' !== $row[0]) {
+                            $blocks[$block][0] .= "\n" . $prefix . $row;
+                            continue;
+                        }
+                    }
                     $blocks[++$block] = [$prefix . $row, 2];
                     continue;
                 }
