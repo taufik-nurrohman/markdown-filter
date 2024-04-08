@@ -197,30 +197,32 @@ namespace x\markdown_filter\rows {
                 $parts = \explode("\n", $row);
                 $fix = \substr($parts[0], 0, $n = \strpos($parts[0], ']:') + 2);
                 $parts[0] = \substr($parts[0], $n);
-                $dent = ("" !== $parts[0] ? \strlen($fix) : 1) + 1;
+                $dent = 0;
                 foreach ($parts as $k => $v) {
                     if (0 === $k) {
                         continue;
                     }
-                    if (($n = \strspn($v, " \t")) <= $dent) {
-                        $parts[$k] = \substr($v, $n);
+                    $d = \strspn($v, " \t");
+                    if (0 === $dent || $d < $dent) {
+                        $dent = $d;
+                    }
+                    if ($dent > 0) {
+                        $parts[$k] = \substr($v, $dent);
                     }
                 }
                 $row = join(split(\implode("\n", $parts)), $fn);
                 $parts = \explode("\n", $row);
+                $dent = 0 === $dent ? $n : $dent;
                 foreach ($parts as $k => $v) {
-                    if (0 === $k && $dent > 2) {
-                        $parts[$k] = $v;
+                    if (0 === $k) {
+                        $parts[$k] = $fix . $v;
                         continue;
                     }
-                    if (\strspn($v, " \t") >= $dent) {
-                        $parts[$k] = $v;
-                        continue;
-                    }
-                    // TODO
                     $parts[$k] = ("" === $v ? "" : \str_repeat(' ', $dent) . $v);
                 }
-                $block = \call_user_func($fn, $fix . \implode("\n", $parts), $status);
+                echo json_encode([$dent,$parts[0]]);
+                echo '<br/>';
+                $block = \call_user_func($fn, \implode("\n", $parts), $status);
                 continue;
             }
             if (_quote($row)) {
