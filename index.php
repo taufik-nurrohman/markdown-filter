@@ -76,7 +76,7 @@ namespace x\markdown_filter\row {
                 $chops[] = ['<', 1];
                 continue;
             }
-            if (0 === \strpos($chop, '&') && \strpos($chop, ';') > 1 && !\preg_match('/^&(?>#x[a-f\d]{1,6}|#\d{1,7}|[a-z][a-z\d]{1,31});/i', $chop, $m)) {
+            if (0 === \strpos($chop, '&') && \strpos($chop, ';') > 1 && \preg_match('/^&(?>#x[a-f\d]{1,6}|#\d{1,7}|[a-z][a-z\d]{1,31});/i', $chop, $m)) {
                 $content = \substr($content, \strlen($m[0]));
                 $chops[] = [$m[0], 0];
                 continue;
@@ -105,9 +105,9 @@ namespace x\markdown_filter\rows {
     }
     function _code_b(string $v) {
         if ($v && false !== \strpos('`~', $v[0]) && ($n = \strspn($v, $v[0])) >= 3) {
-            $test = \strstr($v, "\n", true) ?: $v;
+            $v = \strstr($v, "\n", true) ?: $v;
             // Character “`” cannot exist in the info string if code block fence uses “`” character(s)
-            if ('`' === $v[0] && false !== \strpos(\substr($test, $n), '`')) {
+            if ('`' === $v[0] && false !== \strpos(\substr($v, $n), '`')) {
                 return false;
             }
             return true;
@@ -132,6 +132,7 @@ namespace x\markdown_filter\rows {
             if (_rule($v)) {
                 return false;
             }
+            $v = \strstr($v, "\n", true) ?: $v;
             if (1 === \strlen($v) || ' ' === $v[1]) {
                 return true;
             }
@@ -145,6 +146,7 @@ namespace x\markdown_filter\rows {
             return false;
         }
         if (false !== \strpos(').', \substr($v, $n, 1))) {
+            $v = \strstr($v, "\n", true) ?: $v;
             if ($n + 1 === \strlen($v) || ' ' === \substr($v, $n + 1, 1)) {
                 return true;
             }
@@ -179,8 +181,8 @@ namespace x\markdown_filter\rows {
         return false;
     }
     function _rule(string $v) {
-        $test = \strtr($v = \trim($v), [' ' => ""]);
-        return $v && false !== \strpos('*-_', $v[0]) && \strlen($test) === ($n = \strspn($test, $v[0])) && $n >= 3;
+        $v = \strtr($v = \trim($v), [' ' => ""]);
+        return $v && false !== \strpos('*-_', $v[0]) && \strlen($v) === ($n = \strspn($v, $v[0])) && $n >= 3;
     }
     function join(array $blocks, callable $fn) {
         foreach ($blocks as &$block) {

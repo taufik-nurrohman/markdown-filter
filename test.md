@@ -785,9 +785,150 @@ asdf asdf asdf
 asdf asdf asdf
 </div> asdf
 
-asdf `asdf :)` asdf :) asdf asdf asdf asdf .....
-asdf asdf asdf <asdf asdf="asdf :)"> asdf ......
-asdf asdf asdf asdf <!-- asdf :) --> asdf ......
-asdf <![CDATA[ asdf :) ]]> asdf :) asdf asdf ...
-asdf <!asdf asdf="asdf :)"> asdf asdf asdf .....
-asdf <?asdf asdf="asdf :)" ?> asdf asdf asdf ...
+asdf `asdf :)` asdf :) asdf asdf asdf asdf asdf ..
+asdf asdf asdf <asdf asdf="asdf :)"> asdf asdf ...
+asdf asdf asdf asdf <!-- asdf :) --> asdf asdf ...
+asdf <![CDATA[ asdf :) ]]> asdf :) asdf asdf .....
+asdf <!asdf asdf="asdf :)"> asdf asdf asdf asdf ..
+asdf <?asdf asdf="asdf :)" ?> asdf asdf asdf .....
+asdf asdf asdf &asdf; &#1234; &#x1234; asdf asdf .
+
+1. asdf asdf asdf
+   asdf asdf asdf
+
+   <asdf:asdf>
+
+   asdf asdf asdf
+2. asdf asdf asdf
+   asdf asdf asdf
+
+   <asdf:asdf>
+
+   asdf asdf asdf
+
+1) asdf asdf asdf
+   asdf asdf asdf
+
+   <asdf:asdf>
+
+   asdf asdf asdf
+
+2) asdf asdf asdf
+   asdf asdf asdf
+
+   <asdf:asdf>
+
+   asdf asdf asdf
+
+1.
+   asdf asdf asdf
+   asdf asdf asdf
+
+   <asdf:asdf>
+
+   asdf asdf asdf
+2.
+   asdf asdf asdf
+   asdf asdf asdf
+
+   <asdf:asdf>
+
+   asdf asdf asdf
+
+1)
+   asdf asdf asdf
+   asdf asdf asdf
+
+   <asdf:asdf>
+
+   asdf asdf asdf
+
+2)
+   asdf asdf asdf
+   asdf asdf asdf
+
+   <asdf:asdf>
+
+   asdf asdf asdf
+
++ asdf asdf asdf
+  asdf asdf asdf
+
+  <asdf:asdf>
+
+  asdf asdf asdf
++ asdf asdf asdf
+  asdf asdf asdf
+
+  <asdf:asdf>
+
+  asdf asdf asdf
+
+- asdf asdf asdf
+  asdf asdf asdf
+
+  <asdf:asdf>
+
+  asdf asdf asdf
+
+- asdf asdf asdf
+  asdf asdf asdf
+
+  <asdf:asdf>
+
+  asdf asdf asdf
+
++
+  asdf asdf asdf
+  asdf asdf asdf
+
+  <asdf:asdf>
+
+  asdf asdf asdf
++
+  asdf asdf asdf
+  asdf asdf asdf
+
+  <asdf:asdf>
+
+  asdf asdf asdf
+
+-
+  asdf asdf asdf
+  asdf asdf asdf
+
+  <asdf:asdf>
+
+  asdf asdf asdf
+
+-
+  asdf asdf asdf
+  asdf asdf asdf
+
+  <asdf:asdf>
+
+  asdf asdf asdf
+
+[^1]: asdf asdf asdf
+      asdf asdf asdf
+
+      <asdf:asdf>
+
+      asdf asdf asdf
+
+[^1]:
+  asdf asdf asdf
+  asdf asdf asdf
+
+  <asdf:asdf>
+
+  asdf asdf asdf
+
+[^1]:
+
+  asdf asdf asdf
+  asdf asdf asdf
+
+  <asdf:asdf>
+
+  asdf asdf asdf
