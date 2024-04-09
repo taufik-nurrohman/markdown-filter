@@ -125,7 +125,7 @@ namespace x\markdown_filter\rows {
         return false;
     }
     function _list(string $v) {
-        return _list_a($v) || _list_b($v);
+        return _list_a($v) || _list_b($v) || _list_c($v);
     }
     function _list_a(string $v) {
         if ($v && false !== \strpos('*+-', $v[0])) {
@@ -152,6 +152,9 @@ namespace x\markdown_filter\rows {
             }
         }
         return false;
+    }
+    function _list_c(string $v) {
+        return \strlen($v = \rtrim($v)) > 2 && ':' === $v[0] && ' ' === $v[1];
     }
     function _note(string $v) {
         return 0 === \strpos($v, '[^') && \preg_match('/^\[\^(?>\\\\.|[^][])+\]:(\s|$)/', $v);
@@ -273,9 +276,9 @@ namespace x\markdown_filter\rows {
                 $block = \call_user_func($fn, \implode("\n", $parts), $status);
                 continue;
             }
-            if (_list_a($row)) {
+            if (_list_a($row) || _list_c($row)) {
                 $parts = \explode("\n", $row);
-                $n = 1 + \strspn(\substr($row, 1), ' ');
+                $n = 1 + \strspn($row, ' ', 1);
                 $fix = \substr($row, 0, $n);
                 foreach ($parts as $k => $v) {
                     if (0 === $k || \strspn($v, ' ') >= $n) {
@@ -394,6 +397,11 @@ namespace x\markdown_filter\rows {
                     // Is in a HTML comment block?
                     if (0 === \strpos($prev, '<!--')) {
                         // End of the HTML comment block?
+                        if (false !== \strpos($prev, '-->')) {
+                            $blocks[++$block] = [$prefix. $row, _code_b($row) || _raw($row) ? 0 : (_list($row) || _note($row) || _quote($row) ? 2 : 1)];
+                            continue;
+                        }
+                        // End of the HTML comment block?
                         if (false !== \strpos($row, '-->')) {
                             $blocks[$block][0] .= "\n" . $prefix . $row;
                             $block += 1;
@@ -405,6 +413,11 @@ namespace x\markdown_filter\rows {
                     // Is in a character data block?
                     if (0 === \strpos($prev, '<![CDATA[')) {
                         // End of the character data block?
+                        if (false !== \strpos($prev, ']]>')) {
+                            $blocks[++$block] = [$prefix. $row, _code_b($row) || _raw($row) ? 0 : (_list($row) || _note($row) || _quote($row) ? 2 : 1)];
+                            continue;
+                        }
+                        // End of the character data block?
                         if (false !== \strpos($row, ']]>')) {
                             $blocks[$block][0] .= "\n" . $prefix . $row;
                             $block += 1;
@@ -415,7 +428,12 @@ namespace x\markdown_filter\rows {
                     }
                     // Is in a processing instruction block?
                     if (0 === \strpos($prev, '<?')) {
-                        // End of the character data block?
+                        // End of the processing instruction block?
+                        if (false !== \strpos($prev, '?>')) {
+                            $blocks[++$block] = [$prefix. $row, _code_b($row) || _raw($row) ? 0 : (_list($row) || _note($row) || _quote($row) ? 2 : 1)];
+                            continue;
+                        }
+                        // End of the processing instruction block?
                         if (false !== \strpos($row, '?>')) {
                             $blocks[$block][0] .= "\n" . $prefix . $row;
                             $block += 1;
@@ -453,7 +471,7 @@ namespace x\markdown_filter\rows {
                     continue;
                 }
                 // Is in a list block?
-                if (_list_a($prev)) {
+                if (_list_a($prev) || _list_c($prev)) {
                     if ("" === $row || $dent > $dent_prev + 1) {
                         $blocks[$block][0] .= "\n" . $prefix . $row;
                         continue;
