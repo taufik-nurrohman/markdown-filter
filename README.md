@@ -123,7 +123,10 @@ use function x\markdown_filter\rows as filter_rows;
 
 if ('POST' === $_SERVER['REQUEST_METHOD'] && isset($_POST['comment']['content'])) {
     $_POST['comment']['content'] = filter_rows($_POST['comment']['content'], function ($block, $status) {
-        if (0 === $status || 2 === $status) {
+        if (2 === $status) {
+            return $block;
+        }
+        if (0 === $status) {
             $dent = strspn($block, ' ');
             if ($dent >= 4) {
                 return $block; // Code block (indent-style)

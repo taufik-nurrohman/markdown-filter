@@ -39,7 +39,6 @@ namespace x\markdown_filter\row {
                 $chops[] = [$v, 1];
             }
             if (0 === \strpos($chop, '<')) {
-                // <https://spec.commonmark.org/0.31.2#html-comment>
                 if (0 === \strpos($chop, '<!--') && ($n = \strpos($chop, '-->')) > 1) {
                     $content = \substr($content, $n += 3);
                     $chops[] = [\substr($chop, 0, $n), 0];
@@ -50,14 +49,14 @@ namespace x\markdown_filter\row {
                     $chops[] = [\substr($chop, 0, $n), 0];
                     continue;
                 }
-                if (0 === \strpos($chop, '<!') && \strpos($chop, '>') > 2 && \preg_match('/^<![a-z](?>"[^"]*"|\'[^\']*\'|[^>])+>/i', $chop, $m)) {
-                    $content = \substr($content, \strlen($m[0]));
-                    $chops[] = [$m[0], 0];
+                if (0 === \strpos($chop, '<!') && ($n = \strpos($chop, '>')) > 2 && \preg_match('/^[a-z]/i', \substr($chop, 2))) {
+                    $content = \substr($content, $n += 1);
+                    $chops[] = [\substr($chop, 0, $n), 0];
                     continue;
                 }
-                if (0 === \strpos($chop, '<' . '?') && \strpos($chop, '?' . '>') > 1 && \preg_match('/^<\?(?>"[^"]*"|\'[^\']*\'|[^>])+\?>/', $chop, $m)) {
-                    $content = \substr($content, \strlen($m[0]));
-                    $chops[] = [$m[0], 0];
+                if (0 === \strpos($chop, '<' . '?') && ($n = \strpos($chop, '?' . '>')) > 1) {
+                    $content = \substr($content, $n += 2);
+                    $chops[] = [\substr($chop, 0, $n), 0];
                     continue;
                 }
                 // <https://spec.commonmark.org/0.31.2#raw-html>
@@ -170,7 +169,13 @@ namespace x\markdown_filter\rows {
         if (false !== \strpos($t, ':') || false !== \strpos($t, '@')) {
             return false;
         }
-        if (false !== \strpos('!?', $t[0])) {
+        if (0 === \strpos($t, '!--') || 0 === \strpos($t, '![CDATA[')) {
+            return true;
+        }
+        if ('!' === $t[0]) {
+            return \preg_match('/^[a-z]/i', \substr($t, 1));
+        }
+        if ('?' === $t[0]) {
             return true;
         }
         $n = \trim($t, '/');
@@ -378,7 +383,7 @@ namespace x\markdown_filter\rows {
                         $blocks[$block][0] = \substr(\rtrim($blocks[$block][0], ' '), 0, -1);
                         $blocks[++$block] = [$prefix, 1];
                     }
-                    $blocks[++$block] = [$prefix . $row, _code_b($row) || _raw($row) ? 0 : (_list($row) || _note($row) || _quote($row) ? 2 : 1)];
+                    $blocks[++$block] = [$prefix . $row, status($row)];
                     continue;
                 }
                 // Is in a code block?
@@ -398,7 +403,7 @@ namespace x\markdown_filter\rows {
                     if (0 === \strpos($prev, '<!--')) {
                         // End of the HTML comment block?
                         if (false !== \strpos($prev, '-->')) {
-                            $blocks[++$block] = [$prefix. $row, _code_b($row) || _raw($row) ? 0 : (_list($row) || _note($row) || _quote($row) ? 2 : 1)];
+                            $blocks[++$block] = [$prefix . $row, status($row)];
                             continue;
                         }
                         // End of the HTML comment block?
@@ -414,7 +419,7 @@ namespace x\markdown_filter\rows {
                     if (0 === \strpos($prev, '<![CDATA[')) {
                         // End of the character data block?
                         if (false !== \strpos($prev, ']]>')) {
-                            $blocks[++$block] = [$prefix. $row, _code_b($row) || _raw($row) ? 0 : (_list($row) || _note($row) || _quote($row) ? 2 : 1)];
+                            $blocks[++$block] = [$prefix . $row, status($row)];
                             continue;
                         }
                         // End of the character data block?
@@ -426,15 +431,31 @@ namespace x\markdown_filter\rows {
                         $blocks[$block][0] .= "\n" . ("" !== $row ? $prefix . $row : "");
                         continue;
                     }
+                    // Is in a document type block?
+                    if (0 === \strpos($prev, '<!') && 0 === $blocks[$block][1]) {
+                        // End of the document type block?
+                        if (false !== \strpos($prev, '>')) {
+                            $blocks[++$block] = [$prefix . $row, status($row)];
+                            continue;
+                        }
+                        // End of the document type block?
+                        if (false !== \strpos($row, '>')) {
+                            $blocks[$block][0] .= "\n" . $prefix . $row;
+                            $block += 1;
+                            continue;
+                        }
+                        $blocks[$block][0] .= "\n" . ("" !== $row ? $prefix . $row : "");
+                        continue;
+                    }
                     // Is in a processing instruction block?
-                    if (0 === \strpos($prev, '<?')) {
+                    if (0 === \strpos($prev, '<' . '?')) {
                         // End of the processing instruction block?
-                        if (false !== \strpos($prev, '?>')) {
-                            $blocks[++$block] = [$prefix. $row, _code_b($row) || _raw($row) ? 0 : (_list($row) || _note($row) || _quote($row) ? 2 : 1)];
+                        if (false !== \strpos($prev, '?' . '>')) {
+                            $blocks[++$block] = [$prefix . $row, status($row)];
                             continue;
                         }
                         // End of the processing instruction block?
-                        if (false !== \strpos($row, '?>')) {
+                        if (false !== \strpos($row, '?' . '>')) {
                             $blocks[$block][0] .= "\n" . $prefix . $row;
                             $block += 1;
                             continue;
@@ -451,7 +472,7 @@ namespace x\markdown_filter\rows {
                                 $blocks[$block][0] = \substr(\rtrim($blocks[$block][0], ' '), 0, -1);
                                 $blocks[++$block] = [$prefix, 1];
                             }
-                            $blocks[++$block] = [$prefix . $row, _code_b($row) || _raw($row) ? 0 : (_list($row) || _note($row) || _quote($row) ? 2 : 1)];
+                            $blocks[++$block] = [$prefix . $row, status($row)];
                             continue;
                         }
                         $blocks[$block][0] .= "\n" . $prefix . $row;
@@ -485,7 +506,7 @@ namespace x\markdown_filter\rows {
                         $blocks[$block][0] .= "\n" . $prefix . $row;
                         continue;
                     }
-                    $blocks[++$block] = [$prefix . $row, _code_b($row) || _raw($row) ? 0 : (_list($row) || _note($row) || _quote($row) ? 2 : 1)];
+                    $blocks[++$block] = [$prefix . $row, status($row)];
                     continue;
                 }
                 // Is in a list block?
@@ -504,7 +525,7 @@ namespace x\markdown_filter\rows {
                         $blocks[$block][0] .= "\n" . $prefix . $row;
                         continue;
                     }
-                    $blocks[++$block] = [$prefix . $row, _code_b($row) || _raw($row) ? 0 : (_list($row) || _note($row) || _quote($row) ? 2 : 1)];
+                    $blocks[++$block] = [$prefix . $row, status($row)];
                     continue;
                 }
                 // Is in a note block?
@@ -518,7 +539,7 @@ namespace x\markdown_filter\rows {
                         $blocks[$block][0] = \substr(\rtrim($blocks[$block][0], ' '), 0, -1);
                         $blocks[++$block] = [$prefix, 1];
                     }
-                    $blocks[++$block] = [$prefix . $row, _code_b($row) || _raw($row) ? 0 : (_list($row) || _note($row) || _quote($row) ? 2 : 1)];
+                    $blocks[++$block] = [$prefix . $row, status($row)];
                     continue;
                 }
                 // Current block is a blank line…
@@ -620,5 +641,8 @@ namespace x\markdown_filter\rows {
             $blocks[++$block] = [$prefix . $row, 1];
         }
         return $blocks;
+    }
+    function status(string $row) {
+        return _code($row) || _raw($row) ? 0 : (_list($row) || _note($row) || _quote($row) ? 2 : 1);
     }
 }
