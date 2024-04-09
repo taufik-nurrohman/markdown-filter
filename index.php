@@ -28,10 +28,10 @@ namespace x\markdown_filter\row {
     }
     function split(string $content) {
         // Normalize line break(s)
-        $content = \trim(\strtr($content, [
+        $content = \strtr($content, [
             "\r\n" => "\n",
             "\r" => "\n"
-        ]), "\n");
+        ]);
         $chops = [];
         while (false !== ($chop = \strpbrk($content, '<&`'))) {
             if ("" !== ($v = \substr($content, 0, \strlen($content) - \strlen($chop)))) {
@@ -236,7 +236,7 @@ namespace x\markdown_filter\rows {
                 $dent = 0 === $dent ? $n : $dent;
                 foreach ($parts as $k => $v) {
                     if (0 === $k) {
-                        $parts[$k] = $prefix . $fix . (0 === $dent_fix ? "\n\n" . \str_repeat(' ', $dent) : "") . $v;
+                        $parts[$k] = $prefix . $fix . $v;
                         continue;
                     }
                     if ("" === \trim($v)) {
@@ -339,10 +339,10 @@ namespace x\markdown_filter\rows {
     }
     function split(string $content) {
         // Normalize line break(s)
-        $content = \trim(\strtr($content, [
+        $content = \strtr($content, [
             "\r\n" => "\n",
             "\r" => "\n"
-        ]), "\n");
+        ]);
         $block = -1;
         $blocks = [];
         $rows = \explode("\n", $content);
