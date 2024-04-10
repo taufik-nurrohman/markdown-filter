@@ -110,7 +110,7 @@ to safely replace the syntax:
 ![Example][2]
 
  [1]: https://github.com/taufik-nurrohman/markdown
- [2]: https://github.com/taufik-nurrohman/markdown-filter/assets/1669261/505c140a-2e0a-4788-951d-afcaf0cd88e0
+ [2]: https://github.com/taufik-nurrohman/markdown-filter/assets/1669261/5b58383f-5184-4a0b-8d85-5c96ba7e5bc1
 
 You can also use this filter to strip HTML tags other than those that are written in Markdown’s code syntax. People
 usually write HTML syntax there to share a piece of code in your comments section:
