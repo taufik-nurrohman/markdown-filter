@@ -80,9 +80,14 @@ namespace x\markdown_filter\row {
                 $chops[] = [$m[0], 0];
                 continue;
             }
-            if (0 === \strpos($chop, '`') && \preg_match('/^(`+)[^`]+\1(?!`)/', $chop, $m)) {
-                $content = \substr($content, \strlen($m[0]));
-                $chops[] = [$m[0], 0];
+            if (0 === \strpos($chop, '`')) {
+                if (\preg_match('/^(`+)(?!`)[^\n]+(?<!`)\1(?!`)/', $chop, $m)) {
+                    $content = \substr($content, \strlen($m[0]));
+                    $chops[] = [$m[0], 0];
+                    continue;
+                }
+                $content = \substr($content, $n = \strspn($chop, '`'));
+                $chops[] = [\substr($chop, 0, $n), 1];
                 continue;
             }
             $content = \substr($content, \strlen($chop));
