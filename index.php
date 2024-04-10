@@ -592,18 +592,17 @@ namespace x\markdown_filter\rows {
                     $blocks[++$block] = [$prefix . $row, 2];
                     continue;
                 }
+                // End of a tight header block
                 if ('-' === $row || '--' === $row || '=' === $row || '==' === $row) {
                     $blocks[$block][0] .= "\n" . $prefix . $row;
                     $block += 1;
                     continue;
                 }
-                if (false !== \strpos('-=', $row[0])) {
-                    $v = \strtr($row, [' ' => ""]);
-                    if (\strlen($v) === ($n = \strspn($v, $v[0]))) {
-                        $blocks[$block][0] .= "\n" . $prefix . $row;
-                        $block += 1;
-                        continue;
-                    }
+                // End of a tight header block
+                if (false !== \strpos('-=', $row[0]) && \strlen($v = \rtrim($row)) === \strspn($v, $v[0])) {
+                    $blocks[$block][0] .= "\n" . $prefix . $row;
+                    $block += 1;
+                    continue;
                 }
                 // Continue the current block…
                 $blocks[$block][0] .= "\n" . $prefix . $row;
