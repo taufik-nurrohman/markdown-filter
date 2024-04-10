@@ -165,10 +165,7 @@ namespace x\markdown_filter\rows {
         if (!$v || '<' !== $v[0]) {
             return false;
         }
-        $t = \substr(\strtok($v = \trim($v), " \n>"), 1);
-        if (false !== \strpos($t, ':') || false !== \strpos($t, '@')) {
-            return false;
-        }
+        $t = \rtrim(\substr(\strtok($v = \trim($v), " \n>"), 1), '/');
         if (0 === \strpos($t, '!--') || 0 === \strpos($t, '![CDATA[')) {
             return true;
         }
@@ -178,13 +175,14 @@ namespace x\markdown_filter\rows {
         if ('?' === $t[0]) {
             return true;
         }
-        $n = \trim($t, '/');
+        if (false !== \strpos($t, ':') || false !== \strpos($t, '@')) {
+            return false;
+        }
         if (false !== \strpos(',address,article,aside,base,basefont,blockquote,body,caption,center,col,colgroup,dd,details,dialog,dir,div,dl,dt,fieldset,figcaption,figure,footer,form,frame,frameset,h1,h2,h3,h4,h5,h6,head,header,hr,html,iframe,legend,li,link,main,menu,menuitem,nav,noframes,ol,optgroup,option,p,pre,param,script,search,section,source,style,summary,table,tbody,td,textarea,tfoot,th,thead,title,tr,track,ul,', ',' . ($n = \trim($t, '/')) . ',')) {
             return true;
         }
-        $v = \strstr($v, "\n", true) ?: $v;
-        if ('<' . $t . '>' === $v || '>' === \substr($v, -1) && \preg_match('/^<' . $n . '(\s(?>"[^"]*"|\'[^\']*\'|[^>])*)?>$/', $v)) {
-            return true;
+        if ('>' === \substr($v = \rtrim(\strstr($v, "\n", true) ?: $v), -1)) {
+            return '/' !== $t[0] || false !== \strpos($v, ' ');
         }
         return false;
     }
