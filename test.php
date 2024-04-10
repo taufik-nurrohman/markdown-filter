@@ -1,5 +1,15 @@
 <?php
 
+if (!in_array($_SERVER['REMOTE_ADDR'], ['127.0.0.1', '::1'])) {
+    exit;
+}
+
+error_reporting(E_ALL | E_STRICT);
+
+ini_set('display_errors', true);
+ini_set('display_startup_errors', true);
+ini_set('html_errors', 1);
+
 require __DIR__ . '/index.php';
 
 $content = file_get_contents(__DIR__ . '/test.md');
@@ -25,11 +35,12 @@ $out .= '<meta charset="utf-8">';
 $out .= '<title>';
 $out .= 'Markdown Filter';
 $out .= '</title>';
+$out .= '<style>*{box-sizing:border-box;font:normal normal 13px/15px monospace;margin:0;padding:0}body{background:#fff;color:#000}button{cursor:pointer;padding:0 2px}p{margin:8px 0 0;padding:0 8px}</style>';
 $out .= '</head>';
 $out .= '<body>';
 
 $out .= '<form method="get">';
-$out .= '<p>Add indent level: <input max="10" min="0" name="dent" onfocus="this.select();" step="1" style="background:0 0;border:0;font:inherit;margin:0;padding:0;vertical-align:middle;width:2.5em;" placeholder="0" type="number" value="' . $dent . '"></p>';
+$out .= '<p>Add indent level: <input max="10" min="0" name="dent" onfocus="this.select();" step="1" style="background:0 0;border:0;font:inherit;vertical-align:middle;width:2.5em;" placeholder="0" type="number" value="' . $dent . '"></p>';
 $out .= '<p>Add attributes to the HTML elements: <input' . ($attributes ? ' checked' : "") . ' name="attributes" type="checkbox" value="1" style="display:inline-block;margin:0;padding:0;vertical-align:middle;"></p>';
 $out .= '<p>';
 $out .= '<button type="submit">';
@@ -38,8 +49,8 @@ $out .= '</button>';
 $out .= '</p>';
 $out .= '</form>';
 
-$out .= '<div style="display:flex;flex-direction:row;gap:15px;">';
-$out .= '<div style="background:#fff;border:2px solid #080;color:#000;display:flex;flex:1;flex-direction:column;font:normal normal 13px/15px monospace;gap:1px;overflow:auto;padding:1px;white-space:pre;">';
+$out .= '<div style="background:#0e0;border:8px solid #0e0;display:flex;flex-direction:row;gap:8px;margin:8px 0 0;">';
+$out .= '<div style="background:#fff;border:2px solid #080;color:#000;display:flex;flex:1;flex-direction:column;gap:1px;overflow:auto;padding:1px;white-space:pre;">';
 
 // For demonstration purpose
 foreach (x\markdown_filter\rows\split($content) as $row) {
@@ -95,7 +106,7 @@ $content = x\markdown_filter\rows($content, static function ($part, $status) {
     return $prefix . $part;
 });
 
-$out .= '<div style="background:#fff;color:#000;flex:1;font:normal normal 13px/15px monospace;overflow:auto;white-space:pre;">';
+$out .= '<div style="background:#fff;color:#000;flex:1;overflow:auto;white-space:pre;">';
 
 $out .= preg_replace_callback('/^[ \t]+|[ \t]+$/m', static function ($m) {
     return strtr($m[0], [
