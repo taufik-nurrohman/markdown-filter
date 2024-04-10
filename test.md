@@ -1,16 +1,34 @@
-asdf `asdf :)` asdf :) asdf asdf asdf .
-asdf ```asdf :)``` asdf :) asdf asdf ..
-asdf ```asdf :)`` asdf :) asdf asdf ...
-asdf <asdf asdf="asdf :)"> asdf :) asdf
-asdf <!-- asdf :) --> asdf :) asdf asdf
-asdf <![CDATA[ asdf :) ]]> asdf :) asdf
-asdf <!asdf asdf :) > asdf :) asdf asdf
-asdf <! asdf asdf :) > asdf :) asdf ...
-asdf <?asdf asdf :) ?> asdf :) asdf ...
-asdf &asdf; &#1234; &#x1234; asdf :) ..
+asdf `asdf :)` asdf :) asdf asdf asdf
+asdf ``asdf :)`` asdf :) asdf asdf asdf
+asdf ``asdf :)` asdf :) asdf asdf asdf
 
-PARAGRAPH
-=========
+asdf <asdf asdf="asdf :)"> asdf :) asdf
+asdf <asdf asdf="asdf :)"> > asdf :) asdf
+asdf <asdf asdf="asdf :) >"> asdf :) asdf
+
+asdf <!-- asdf :) --> asdf :) asdf asdf
+asdf <!--> asdf :) --> asdf :) asdf asdf
+asdf <!---> asdf :) --> asdf :) asdf asdf
+asdf <!----> asdf :) --> asdf :) asdf asdf
+asdf <!-- --> asdf :) --> asdf :) asdf asdf
+
+asdf <![CDATA[ asdf :) ]]> asdf :) asdf
+asdf <![CDATA[ asdf :) ]]> ]]> asdf :) asdf
+
+asdf <!asdf asdf :) > asdf :) asdf asdf
+asdf <!asdf asdf :) > > asdf :) asdf asdf
+asdf <! asdf asdf :) > asdf :) asdf asdf
+
+asdf <?asdf asdf :) ?> asdf :) asdf asdf
+asdf <?asdf asdf :) > ?> asdf :) asdf asdf
+asdf <?asdf asdf :) ?> ?> asdf :) asdf asdf
+asdf <?asdf asdf :) ? > ?> asdf :) asdf asdf
+
+asdf &asdf; &#1234; &#x1234; asdf :) asdf
+
+▄▄▄▄▄▄▄▄▄▄▄▄▄
+█ PARAGRAPH █
+▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 asdf asdf asdf
 asdf asdf asdf
@@ -25,11 +43,11 @@ asdf asdf asdf
 
 asdf asdf asdf
 
-CODE
-====
+▄▄▄▄▄▄▄▄
+█ CODE █
+▀▀▀▀▀▀▀▀
 
-TYPE 1
-------
+█ TYPE 1
 
     asdf asdf asdf
     asdf asdf asdf
@@ -44,8 +62,7 @@ asdf asdf asdf
     asdf asdf asdf
 asdf asdf asdf
 
-TYPE 2
-------
+█ TYPE 2
 
 ```
 asdf asdf asdf
@@ -85,8 +102,7 @@ asdf asdf asdf
 ```
 asdf asdf asdf
 
-TYPE 3
-------
+█ TYPE 3
 
 ~~~
 asdf asdf asdf
@@ -126,8 +142,9 @@ asdf asdf asdf
 ~~~
 asdf asdf asdf
 
-QUOTE
-=====
+▄▄▄▄▄▄▄▄▄
+█ QUOTE █
+▀▀▀▀▀▀▀▀▀
 
 > asdf asdf asdf
 > asdf asdf asdf
@@ -142,11 +159,11 @@ asdf asdf asdf
 > asdf asdf asdf
 asdf asdf asdf
 
-HEADER
-======
+▄▄▄▄▄▄▄▄▄▄
+█ HEADER █
+▀▀▀▀▀▀▀▀▀▀
 
-TYPE 1
-------
+█ TYPE 1
 
 <asdf:asdf>
 ===========
@@ -170,8 +187,7 @@ asdf asdf asdf
 --------------
 asdf asdf asdf
 
-TYPE 2
-------
+█ TYPE 2
 
 # <asdf:asdf>
 
@@ -191,8 +207,9 @@ asdf asdf asdf
 # asdf asdf asdf
 asdf asdf asdf
 
-RULER
-=====
+▄▄▄▄▄▄▄▄▄
+█ RULER █
+▀▀▀▀▀▀▀▀▀
 
 ---
 
@@ -210,8 +227,9 @@ asdf asdf asdf
 - - -
 asdf asdf asdf
 
-LIST
-====
+▄▄▄▄▄▄▄▄
+█ LIST █
+▀▀▀▀▀▀▀▀
 
 + asdf asdf asdf
 + asdf asdf asdf
@@ -236,7 +254,7 @@ LIST
 
     asdf asdf asdf
 
----
+█
 
 + asdf asdf asdf
   asdf asdf asdf
@@ -302,8 +320,9 @@ asdf asdf asdf
 + asdf asdf asdf
 asdf asdf asdf
 
-NUMBER LIST
-===========
+▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+█ NUMBER LIST █
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 1. asdf asdf asdf
 2. asdf asdf asdf
@@ -328,7 +347,7 @@ NUMBER LIST
 
       asdf asdf asdf
 
----
+█
 
 1. asdf asdf asdf
    asdf asdf asdf
@@ -357,7 +376,7 @@ NUMBER LIST
 
    asdf asdf asdf
 
----
+█
 
 1.
    asdf asdf asdf
@@ -414,8 +433,9 @@ asdf asdf asdf
 2) asdf asdf asdf
 asdf asdf asdf
 
-DEFINITION LIST
-===============
+▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+█ DEFINITION LIST █
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 asdf asdf asdf
 : asdf asdf asdf
@@ -423,7 +443,7 @@ asdf asdf asdf
 : <asdf:asdf>
 : asdf asdf asdf
 
----
+█
 
 asdf asdf asdf
 
@@ -449,8 +469,9 @@ asdf asdf asdf
 : asdf asdf asdf
 asdf asdf asdf
 
-NOTE
-====
+▄▄▄▄▄▄▄▄
+█ NOTE █
+▀▀▀▀▀▀▀▀
 
 [^1]: asdf asdf asdf
       asdf asdf asdf
@@ -482,13 +503,13 @@ asdf asdf asdf
 [^1]: asdf asdf asdf
 asdf asdf asdf
 
-HTML BLOCK
-==========
+▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+█ HTML BLOCK █
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 **Reference:** <https://spec.commonmark.org/0.31.2#html-blocks>
 
-TYPE 1
-------
+█ TYPE 1
 
 <pre>asdf asdf asdf</pre>
 <asdf:asdf>
@@ -532,8 +553,7 @@ asdf asdf asdf
 </pre>
 asdf asdf asdf
 
-TYPE 2
-------
+█ TYPE 2
 
 <!-- asdf asdf asdf -->
 <asdf:asdf>
@@ -571,8 +591,7 @@ asdf asdf asdf
 <!-- asdf asdf asdf -->
 asdf asdf asdf
 
-TYPE 3
-------
+█ TYPE 3
 
 <? asdf asdf asdf ?>
 <asdf:asdf>
@@ -610,8 +629,7 @@ asdf asdf asdf
 <? asdf asdf asdf ?>
 asdf asdf asdf
 
-TYPE 4
-------
+█ TYPE 4
 
 <!asdf asdf asdf>
 <asdf:asdf>
@@ -645,7 +663,7 @@ asdf asdf asdf
 <!asdf asdf asdf>
 asdf asdf asdf
 
----
+█
 
 <! asdf asdf asdf>
 <asdf:asdf>
@@ -679,8 +697,7 @@ asdf asdf asdf
 <! asdf asdf asdf>
 asdf asdf asdf
 
-TYPE 5
-------
+█ TYPE 5
 
 <![CDATA[asdf asdf asdf]]>
 <asdf:asdf>
@@ -718,8 +735,7 @@ asdf asdf asdf
 <![CDATA[asdf asdf asdf]]>
 asdf asdf asdf
 
-TYPE 6
-------
+█ TYPE 6
 
 <div>asdf asdf asdf</div>
 <asdf:asdf>
@@ -763,7 +779,7 @@ asdf asdf asdf
 </div>
 asdf asdf asdf
 
----
+█
 
 <div>
   <div>
@@ -784,8 +800,7 @@ asdf asdf asdf
 
 <asdf:asdf>
 
-TYPE 7
-------
+█ TYPE 7
 
 <asdf>asdf asdf asdf</asdf> asdf asdf asdf
 <asdf:asdf>
@@ -829,7 +844,7 @@ asdf asdf asdf
 </asdf> asdf asdf asdf
 asdf asdf asdf
 
----
+█
 
 <asdf> asdf asdf asdf
   <asdf> asdf asdf asdf
@@ -850,7 +865,7 @@ asdf asdf asdf
 
 <asdf:asdf>
 
----
+█
 
 <asdf>asdf asdf asdf</asdf>
 <asdf:asdf>
@@ -894,7 +909,7 @@ asdf asdf asdf
 </asdf>
 asdf asdf asdf
 
----
+█
 
 <asdf>
   <asdf>
