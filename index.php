@@ -185,7 +185,7 @@ namespace x\markdown_filter\rows {
             if ('/' === $t[0] && false !== \strpos($v, ' ')) {
                 return false;
             }
-            return true;
+            return false === \strpos(\substr($v, 0, -1), '>');
         }
         return false;
     }
