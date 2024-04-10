@@ -178,7 +178,7 @@ namespace x\markdown_filter\rows {
         if (false !== \strpos($t, ':') || false !== \strpos($t, '@')) {
             return false;
         }
-        if (false !== \strpos(',address,article,aside,base,basefont,blockquote,body,caption,center,col,colgroup,dd,details,dialog,dir,div,dl,dt,fieldset,figcaption,figure,footer,form,frame,frameset,h1,h2,h3,h4,h5,h6,head,header,hr,html,iframe,legend,li,link,main,menu,menuitem,nav,noframes,ol,optgroup,option,p,pre,param,script,search,section,source,style,summary,table,tbody,td,textarea,tfoot,th,thead,title,tr,track,ul,', ',' . ($n = \trim($t, '/')) . ',')) {
+        if (false !== \stripos(',address,article,aside,base,basefont,blockquote,body,caption,center,col,colgroup,dd,details,dialog,dir,div,dl,dt,fieldset,figcaption,figure,footer,form,frame,frameset,h1,h2,h3,h4,h5,h6,head,header,hr,html,iframe,legend,li,link,main,menu,menuitem,nav,noframes,ol,optgroup,option,p,pre,param,script,search,section,source,style,summary,table,tbody,td,textarea,tfoot,th,thead,title,tr,track,ul,', ',' . ($n = \trim($t, '/')) . ',')) {
             return true;
         }
         if ('>' === \substr($v = \rtrim(\strstr($v, "\n", true) ?: $v), -1)) {
@@ -464,7 +464,7 @@ namespace x\markdown_filter\rows {
                     $t = \substr(\strtok($prev, " \n>"), 1);
                     if ("" !== $row) {
                         // <https://spec.commonmark.org/0.31.2#html-block>
-                        if (false !== \strpos(',pre,script,style,textarea,', ',' . $t . ',') && false !== \strpos($prev, '</' . $t . '>')) {
+                        if (false !== \stripos(',pre,script,style,textarea,', ',' . $t . ',') && false !== \stripos($prev, '</' . $t . '>')) {
                             // End of the raw block?
                             if ("\n" === \substr(\rtrim($prev, ' '), -1)) {
                                 $blocks[$block][0] = \substr(\rtrim($blocks[$block][0], ' '), 0, -1);
@@ -477,7 +477,7 @@ namespace x\markdown_filter\rows {
                         continue;
                     }
                     // <https://spec.commonmark.org/0.31.2#html-block>
-                    if (false !== \strpos(',pre,script,style,textarea,', ',' . $t . ',')) {
+                    if (false !== \stripos(',pre,script,style,textarea,', ',' . $t . ',')) {
                         $blocks[$block][0] .= "\n" . $prefix . $row;
                         continue;
                     }
@@ -588,6 +588,19 @@ namespace x\markdown_filter\rows {
                     }
                     $blocks[++$block] = [$prefix . $row, 2];
                     continue;
+                }
+                if ('-' === $row || '--' === $row || '=' === $row || '==' === $row) {
+                    $blocks[$block][0] .= "\n" . $prefix . $row;
+                    $block += 1;
+                    continue;
+                }
+                if (false !== \strpos('-=', $row[0])) {
+                    $v = \strtr($row, [' ' => ""]);
+                    if (\strlen($v) === ($n = \strspn($v, $v[0]))) {
+                        $blocks[$block][0] .= "\n" . $prefix . $row;
+                        $block += 1;
+                        continue;
+                    }
                 }
                 // Continue the current block…
                 $blocks[$block][0] .= "\n" . $prefix . $row;
