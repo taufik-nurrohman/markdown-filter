@@ -182,7 +182,10 @@ namespace x\markdown_filter\rows {
             return true;
         }
         if ('>' === \substr($v = \rtrim(\strstr($v, "\n", true) ?: $v), -1)) {
-            return '/' !== $t[0] || false !== \strpos($v, ' ');
+            if ('/' === $t[0] && false !== \strpos($v, ' ')) {
+                return false;
+            }
+            return true;
         }
         return false;
     }

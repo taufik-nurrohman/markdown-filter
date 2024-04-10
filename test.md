@@ -295,6 +295,12 @@ LIST
 
   asdf asdf asdf
 
+asdf asdf asdf
++ asdf asdf asdf
+
++ asdf asdf asdf
+asdf asdf asdf
+
 NUMBER LIST
 ===========
 
@@ -383,6 +389,30 @@ NUMBER LIST
 
    asdf asdf asdf
 
+asdf asdf asdf
+1. asdf asdf asdf
+
+1. asdf asdf asdf
+asdf asdf asdf
+
+asdf asdf asdf
+1) asdf asdf asdf
+
+1) asdf asdf asdf
+asdf asdf asdf
+
+asdf asdf asdf
+2. asdf asdf asdf
+
+2. asdf asdf asdf
+asdf asdf asdf
+
+asdf asdf asdf
+2) asdf asdf asdf
+
+2) asdf asdf asdf
+asdf asdf asdf
+
 DEFINITION LIST
 ===============
 
@@ -412,6 +442,12 @@ asdf asdf asdf
 
   asdf asdf asdf
 
+asdf asdf asdf
+: asdf asdf asdf
+
+: asdf asdf asdf
+asdf asdf asdf
+
 NOTE
 ====
 
@@ -438,6 +474,12 @@ NOTE
   <asdf:asdf>
 
   asdf asdf asdf
+
+asdf asdf asdf
+[^1]: asdf asdf asdf
+
+[^1]: asdf asdf asdf
+asdf asdf asdf
 
 HTML BLOCK
 ==========
@@ -477,6 +519,18 @@ TYPE 1
 
 <asdf:asdf>
 
+asdf asdf asdf
+<pre>
+
+asdf asdf asdf
+</pre>
+
+<pre>
+asdf asdf asdf
+
+</pre>
+asdf asdf asdf
+
 TYPE 2
 ------
 
@@ -509,6 +563,12 @@ asdf asdf asdf
 -->
 
 <asdf:asdf>
+
+asdf asdf asdf
+<!-- asdf asdf asdf -->
+
+<!-- asdf asdf asdf -->
+asdf asdf asdf
 
 TYPE 3
 ------
@@ -543,6 +603,12 @@ asdf asdf asdf
 
 <asdf:asdf>
 
+asdf asdf asdf
+<? asdf asdf asdf ?>
+
+<? asdf asdf asdf ?>
+asdf asdf asdf
+
 TYPE 4
 ------
 
@@ -572,6 +638,12 @@ asdf asdf asdf
 
 <asdf:asdf>
 
+asdf asdf asdf
+<!asdf asdf asdf>
+
+<!asdf asdf asdf>
+asdf asdf asdf
+
 ---
 
 <! asdf asdf asdf>
@@ -599,6 +671,12 @@ asdf asdf asdf
 >
 
 <asdf:asdf>
+
+asdf asdf asdf
+<! asdf asdf asdf>
+
+<! asdf asdf asdf>
+asdf asdf asdf
 
 TYPE 5
 ------
@@ -633,6 +711,12 @@ asdf asdf asdf
 
 <asdf:asdf>
 
+asdf asdf asdf
+<![CDATA[asdf asdf asdf]]>
+
+<![CDATA[asdf asdf asdf]]>
+asdf asdf asdf
+
 TYPE 6
 ------
 
@@ -665,6 +749,18 @@ TYPE 6
 </div> asdf asdf asdf
 
 <asdf:asdf>
+
+asdf asdf asdf
+<div>
+
+asdf asdf asdf
+</div>
+
+<div>
+asdf asdf asdf
+
+</div>
+asdf asdf asdf
 
 ---
 
@@ -720,6 +816,18 @@ TYPE 7
 
 <asdf:asdf>
 
+asdf asdf asdf
+<asdf> asdf asdf asdf
+
+asdf asdf asdf
+</asdf> asdf asdf asdf
+
+<asdf> asdf asdf asdf
+asdf asdf asdf
+
+</asdf> asdf asdf asdf
+asdf asdf asdf
+
 ---
 
 <asdf> asdf asdf asdf
@@ -772,6 +880,18 @@ TYPE 7
 </asdf>
 
 <asdf:asdf>
+
+asdf asdf asdf
+<asdf>
+
+asdf asdf asdf
+</asdf>
+
+<asdf>
+asdf asdf asdf
+
+</asdf>
+asdf asdf asdf
 
 ---
 
