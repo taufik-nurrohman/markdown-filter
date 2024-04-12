@@ -36,68 +36,69 @@ namespace x\markdown_filter\row {
             "\r" => "\n"
         ]);
         $chops = [];
-        while (false !== ($chop = \strpbrk($content, '<&`'))) {
+        while (false !== ($chop = \strpbrk($content, '`<&'))) {
             if ("" !== ($v = \substr($content, 0, \strlen($content) - \strlen($chop)))) {
-                $content = \substr($content, \strlen($v));
                 $chops[] = [$v, 1];
+                $content = \substr($content, \strlen($v));
             }
             if (0 === \strpos($chop, '<')) {
                 if (0 === \strpos($chop, '<!--') && ($n = \strpos($chop, '-->')) > 1) {
-                    $content = \substr($content, $n += 3);
-                    $chops[] = [\substr($chop, 0, $n), 0];
+                    $chops[] = [\substr($chop, 0, $n += 3), 0];
+                    $content = \substr($content, $n);
                     continue;
                 }
                 if (0 === \strpos($chop, '<![CDATA[') && ($n = \strpos($chop, ']]>')) > 8) {
-                    $content = \substr($content, $n += 3);
-                    $chops[] = [\substr($chop, 0, $n), 0];
+                    $chops[] = [\substr($chop, 0, $n += 3), 0];
+                    $content = \substr($content, $n);
                     continue;
                 }
                 if (0 === \strpos($chop, '<!') && ($n = \strpos($chop, '>')) > 2 && \preg_match('/^[a-z]/i', \substr($chop, 2))) {
-                    $content = \substr($content, $n += 1);
-                    $chops[] = [\substr($chop, 0, $n), 0];
+                    $chops[] = [\substr($chop, 0, $n += 1), 0];
+                    $content = \substr($content, $n);
                     continue;
                 }
                 if (0 === \strpos($chop, '<' . '?') && ($n = \strpos($chop, '?' . '>')) > 1) {
-                    $content = \substr($content, $n += 2);
-                    $chops[] = [\substr($chop, 0, $n), 0];
+                    $chops[] = [\substr($chop, 0, $n += 2), 0];
+                    $content = \substr($content, $n);
                     continue;
                 }
                 // <https://spec.commonmark.org/0.31.2#closing-tag>
                 if ('/' === $chop[1] && \preg_match('/^<\/[a-z][a-z\d-]*\s*>/i', $chop, $m)) {
-                    $content = \substr($content, \strlen($m[0]));
                     $chops[] = [$m[0], 0];
+                    $content = \substr($content, \strlen($m[0]));
                     continue;
                 }
                 // <https://spec.commonmark.org/0.31.2#open-tag>
                 if (\preg_match('/^<[a-z][a-z\d-]*(?>\s+[a-z:_][\w.:-]*(?>\s*=\s*(?>"[^"]*"|\'[^\']*\'|[^\s"\'<=>`]+)?)?)*\s*\/?>/i', $chop, $m)) {
-                    $content = \substr($content, \strlen($m[0]));
                     $chops[] = [$m[0], 0];
+                    $content = \substr($content, \strlen($m[0]));
                     continue;
                 }
-                $content = \substr($content, 1);
                 $chops[] = ['<', 1];
+                $content = \substr($content, 1);
                 continue;
             }
             if (0 === \strpos($chop, '&') && \strpos($chop, ';') > 1 && \preg_match('/^&(?>#x[a-f\d]{1,6}|#\d{1,7}|[a-z][a-z\d]{1,31});/i', $chop, $m)) {
-                $content = \substr($content, \strlen($m[0]));
                 $chops[] = [$m[0], 0];
+                $content = \substr($content, \strlen($m[0]));
                 continue;
             }
             if (0 === \strpos($chop, '`')) {
                 if (\preg_match('/^(`+)(?!`)[^\n]+(?<!`)\1(?!`)/', $chop, $m)) {
-                    $content = \substr($content, \strlen($m[0]));
                     $chops[] = [$m[0], 0];
+                    $content = \substr($content, \strlen($m[0]));
                     continue;
                 }
-                $content = \substr($content, $n = \strspn($chop, '`'));
-                $chops[] = [\substr($chop, 0, $n), 1];
+                $chops[] = [\substr($chop, 0, $n = \strspn($chop, '`')), 1];
+                $content = \substr($content, $n);
                 continue;
             }
-            $content = \substr($content, \strlen($chop));
             $chops[] = [$chop, 1];
+            $content = \substr($content, \strlen($chop));
         }
         if ("" !== $content) {
             $chops[] = [$content, 1];
+            $content = "";
         }
         return $chops;
     }
