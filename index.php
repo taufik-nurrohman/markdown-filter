@@ -62,13 +62,13 @@ namespace x\markdown_filter\row {
                     $chops[] = [\substr($chop, 0, $n), 0];
                     continue;
                 }
-                // <https://spec.commonmark.org/0.31.2#raw-html>
-                if (\preg_match('/^<\/[a-z][a-z\d-]*\s*>/i', $chop, $m)) {
+                // <https://spec.commonmark.org/0.31.2#closing-tag>
+                if ('/' === $chop[1] && \preg_match('/^<\/[a-z][a-z\d-]*\s*>/i', $chop, $m)) {
                     $content = \substr($content, \strlen($m[0]));
                     $chops[] = [$m[0], 0];
                     continue;
                 }
-                // <https://spec.commonmark.org/0.31.2#raw-html>
+                // <https://spec.commonmark.org/0.31.2#open-tag>
                 if (\preg_match('/^<[a-z][a-z\d-]*(?>\s+[a-z:_][\w.:-]*(?>\s*=\s*(?>"[^"]*"|\'[^\']*\'|[^\s"\'<=>`]+)?)?)*\s*\/?>/i', $chop, $m)) {
                     $content = \substr($content, \strlen($m[0]));
                     $chops[] = [$m[0], 0];
@@ -186,7 +186,7 @@ namespace x\markdown_filter\rows {
         if (false !== \strpos($t, ':') || false !== \strpos($t, '@')) {
             return false;
         }
-        if (false !== \stripos(',address,article,aside,base,basefont,blockquote,body,caption,center,col,colgroup,dd,details,dialog,dir,div,dl,dt,fieldset,figcaption,figure,footer,form,frame,frameset,h1,h2,h3,h4,h5,h6,head,header,hr,html,iframe,legend,li,link,main,menu,menuitem,nav,noframes,ol,optgroup,option,p,pre,param,script,search,section,source,style,summary,table,tbody,td,textarea,tfoot,th,thead,title,tr,track,ul,', ',' . ($n = \trim($t, '/')) . ',')) {
+        if (false !== \stripos(',address,article,aside,base,basefont,blockquote,body,caption,center,col,colgroup,dd,details,dialog,dir,div,dl,dt,fieldset,figcaption,figure,footer,form,frame,frameset,h1,h2,h3,h4,h5,h6,head,header,hr,html,iframe,legend,li,link,main,menu,menuitem,nav,noframes,ol,optgroup,option,p,pre,param,script,search,section,source,style,summary,table,tbody,td,textarea,tfoot,th,thead,title,tr,track,ul,', ',' . \trim($t, '/') . ',')) {
             return true;
         }
         if ('>' === \substr($v = \rtrim(\strstr($v, "\n", true) ?: $v), -1)) {
@@ -574,6 +574,13 @@ namespace x\markdown_filter\rows {
                 }
                 // Start of a tight raw block
                 if (_raw($row)) {
+                    $t = \substr(\strtok($row, " \n>"), 1);
+                    // <https://spec.commonmark.org/0.31.2#example-187>
+                    if (false === \strpos('!?', $t[0]) && false === \strpos(',address,article,aside,base,basefont,blockquote,body,caption,center,col,colgroup,dd,details,dialog,dir,div,dl,dt,fieldset,figcaption,figure,footer,form,frame,frameset,h1,h2,h3,h4,h5,h6,head,header,hr,html,iframe,legend,li,link,main,menu,menuitem,nav,noframes,ol,optgroup,option,p,pre,param,script,search,section,source,style,summary,table,tbody,td,textarea,tfoot,th,thead,title,tr,track,ul,', ',' . \trim($t, '/') . ',')) {
+                        // HTML block type 7 cannot interrupt a paragraph
+                        $blocks[$block][0] .= "\n" . $prefix . $row;
+                        continue;
+                    }
                     $blocks[++$block] = [$prefix . $row, 0];
                     continue;
                 }
