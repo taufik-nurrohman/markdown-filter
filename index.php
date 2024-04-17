@@ -368,9 +368,10 @@ namespace x\markdown_filter\rows {
         $blocks = [];
         $rows = \explode("\n", $content);
         foreach ($rows as $row) {
-            while (false !== ($before = \strstr($row, "\t", true))) {
-                $v = \strlen($before);
-                $row = $before . \str_repeat(' ', 4 - $v % 4) . \substr($row, $v + 1);
+            // Normalize tab(s) to pad(s)
+            $row = \rtrim($row, "\t");
+            while (false !== ($pad = \strstr($row, "\t", true))) {
+                $row = $pad . \str_repeat(' ', 4 - ($v = \strlen($pad)) % 4) . \substr($row, $v + 1);
             }
             $dent = \strspn($row, ' ');
             $prefix = "";
