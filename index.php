@@ -110,7 +110,7 @@ namespace x\markdown_filter\row {
                 continue;
             }
             if (0 === \strpos($chop, '`')) {
-                if (\preg_match('/^(`+)(?!`).+(?<!`)\1(?!`)/', $chop, $m)) {
+                if (\preg_match('/^(`+)(?![`]).+?(?<![`])\1(?![`])/s', $chop, $m)) {
                     $chops[] = [$m[0], 0];
                     $content = \substr($content, \strlen($m[0]));
                     continue;
