@@ -35,7 +35,7 @@ $out .= '<meta charset="utf-8">';
 $out .= '<title>';
 $out .= 'Markdown Filter';
 $out .= '</title>';
-$out .= '<style>*{box-sizing:border-box;font:normal normal 13px/15px monospace;margin:0;padding:0}body{background:#fff;color:#000}button{cursor:pointer;padding:0 2px}p{margin:8px 0 0;padding:0 8px}</style>';
+$out .= '<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#fff;color:#000}button{cursor:pointer;padding:0 2px}p{margin:16px 0 0;padding:0 16px}</style>';
 $out .= '</head>';
 $out .= '<body>';
 
@@ -49,7 +49,7 @@ $out .= '</button>';
 $out .= '</p>';
 $out .= '</form>';
 
-$out .= '<div style="background:#0e0;border:8px solid #0e0;display:flex;flex-direction:row;gap:8px;margin:8px 0 0;">';
+$out .= '<div style="background:#0e0;border:8px solid #0e0;display:flex;flex-direction:row;font:normal normal 13px/15px monospace;gap:8px;margin:16px 0 0;">';
 $out .= '<div style="background:#fff;border:2px solid #080;color:#000;display:flex;flex:1;flex-direction:column;gap:1px;overflow:auto;padding:1px;white-space:pre;">';
 
 // For demonstration purpose

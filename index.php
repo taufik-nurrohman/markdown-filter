@@ -36,10 +36,36 @@ namespace x\markdown_filter\row {
             "\r" => "\n"
         ]);
         $chops = [];
-        while (false !== ($chop = \strpbrk($content, '`<&'))) {
-            if ("" !== ($v = \substr($content, 0, \strlen($content) - \strlen($chop)))) {
+        while (false !== ($chop = \strpbrk($content, "\\" . '`<&' . "\n"))) {
+            if ("" !== ($v = \strstr($content, $chop[0], true))) {
                 $chops[] = [$v, 1];
                 $content = \substr($content, \strlen($v));
+            }
+            if (0 === \strpos($chop, "\\")) {
+                if ("\\" === \trim($chop)) {
+                    $chops[] = ["\\", 0];
+                    $content = "";
+                    break;
+                }
+                if ("\n" === \substr($chop, 1, 1)) {
+                    $chops[] = ["\\\n", 0];
+                    $content = \substr($content, 2);
+                    continue;
+                }
+                $chops[] = [\substr($chop, 0, 2), 0];
+                $content = \substr($content, 2);
+                continue;
+            }
+            if (0 === \strpos($chop, "\n")) {
+                if (\is_string($last = $chops[\count($chops) - 1][0] ?? 0) && '  ' === \substr($last, -2)) {
+                    $chops[\count($chops) - 1][0] = \substr($last, 0, -2);
+                    $chops[] = ["  \n", 0];
+                    $content = \substr($content, 1);
+                    continue;
+                }
+                $chops[] = ["\n", 1];
+                $content = \substr($content, 1);
+                continue;
             }
             if (0 === \strpos($chop, '<')) {
                 if (0 === \strpos($chop, '<!--') && ($n = \strpos($chop, '-->')) > 1) {
@@ -84,7 +110,7 @@ namespace x\markdown_filter\row {
                 continue;
             }
             if (0 === \strpos($chop, '`')) {
-                if (\preg_match('/^(`+)(?!`)[^\n]+(?<!`)\1(?!`)/', $chop, $m)) {
+                if (\preg_match('/^(`+)(?!`).+(?<!`)\1(?!`)/', $chop, $m)) {
                     $chops[] = [$m[0], 0];
                     $content = \substr($content, \strlen($m[0]));
                     continue;
