@@ -57,20 +57,18 @@ foreach (x\markdown_filter\rows\split($content) as $row) {
     [$part, $status] = $row;
     $part = htmlspecialchars($chunk = $part);
     if (0 === $status) {
-        $out .= '<div style="background:#f99;border:2px solid #800;">' . $part . '</div>';
+        $out .= '<div style="background:#f99;border:2px solid #800;">';
+        $out .= "" === $part ? '<br>' : $part;
+        $out .= '</div>';
     } else if (1 === $status) {
         $out .= '<div style="border:2px solid #080;">';
-        if ("" === $chunk) {
-            $out .= '<br>';
-        } else {
-            foreach (x\markdown_filter\row\split($chunk) as $v) {
-                $v[0] = htmlspecialchars($v[0]);
-                if (1 === $v[1]) {
-                    $out .= $v[0];
-                    continue;
-                }
-                $out .= '<span style="background:#f99;">' . $v[0] . '</span>';
+        foreach (x\markdown_filter\row\split($chunk) as $v) {
+            $v[0] = htmlspecialchars($v[0]);
+            if (1 === $v[1]) {
+                $out .= $v[0];
+                continue;
             }
+            $out .= '<span style="background:#f99;">' . $v[0] . '</span>';
         }
         $out .= '</div>';
     } else {

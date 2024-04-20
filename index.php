@@ -419,7 +419,7 @@ namespace x\markdown_filter\rows {
                     // End of the code block?
                     if ("\n" === \substr(\rtrim($prev, ' '), -1)) {
                         $blocks[$block][0] = \substr(\rtrim($blocks[$block][0], ' '), 0, -1);
-                        $blocks[++$block] = [$prefix, 1];
+                        $blocks[++$block] = [$prefix, 0];
                     }
                     $blocks[++$block] = [$prefix . $row, status($row)];
                     continue;
@@ -508,7 +508,7 @@ namespace x\markdown_filter\rows {
                             // End of the raw block?
                             if ("\n" === \substr(\rtrim($prev, ' '), -1)) {
                                 $blocks[$block][0] = \substr(\rtrim($blocks[$block][0], ' '), 0, -1);
-                                $blocks[++$block] = [$prefix, 1];
+                                $blocks[++$block] = [$prefix, 0];
                             }
                             $blocks[++$block] = [$prefix . $row, status($row)];
                             continue;
@@ -521,7 +521,7 @@ namespace x\markdown_filter\rows {
                         $blocks[$block][0] .= "\n" . $prefix . $row;
                         continue;
                     }
-                    $blocks[++$block] = [$prefix . $row, 1]; // End of the raw block
+                    $blocks[++$block] = [$prefix . $row, status($row)]; // End of the raw block
                     continue;
                 }
                 // Is a rule block?
@@ -538,7 +538,7 @@ namespace x\markdown_filter\rows {
                     // End of the list block?
                     if ("\n" === \substr(\rtrim($prev, ' '), -1)) {
                         $blocks[$block][0] = \substr(\rtrim($blocks[$block][0], ' '), 0, -1);
-                        $blocks[++$block] = [$prefix, 1];
+                        $blocks[++$block] = [$prefix, 0];
                     // Lazy list?
                     } else if (!_code($row) && !_header($row) && !_list($row) && !_note($row) && !_quote($row) && !_raw($row) && !_rule($row)) {
                         $blocks[$block][0] .= "\n" . $prefix . $row;
@@ -557,7 +557,7 @@ namespace x\markdown_filter\rows {
                     // End of the list block?
                     if ("\n" === \substr(\rtrim($prev, ' '), -1)) {
                         $blocks[$block][0] = \substr(\rtrim($blocks[$block][0], ' '), 0, -1);
-                        $blocks[++$block] = [$prefix, 1];
+                        $blocks[++$block] = [$prefix, 0];
                     // Lazy list?
                     } else if (!_code($row) && !_header($row) && !_list($row) && !_note($row) && !_quote($row) && !_raw($row) && !_rule($row)) {
                         $blocks[$block][0] .= "\n" . $prefix . $row;
@@ -575,14 +575,14 @@ namespace x\markdown_filter\rows {
                     // End of the note block?
                     if ("\n" === \substr(\rtrim($prev, ' '), -1)) {
                         $blocks[$block][0] = \substr(\rtrim($blocks[$block][0], ' '), 0, -1);
-                        $blocks[++$block] = [$prefix, 1];
+                        $blocks[++$block] = [$prefix, 0];
                     }
                     $blocks[++$block] = [$prefix . $row, status($row)];
                     continue;
                 }
                 // Current block is a blank line…
                 if ("" === $row) {
-                    $blocks[++$block] = [$prefix, 1];
+                    $blocks[++$block] = [$prefix, 0];
                     continue;
                 }
                 // Start of a tight code block
@@ -654,7 +654,7 @@ namespace x\markdown_filter\rows {
             }
             // Start a new block…
             if ("" === $row) {
-                $blocks[++$block] = [$prefix, 1];
+                $blocks[++$block] = [$prefix, 0];
                 continue;
             }
             // Start of a code block
@@ -700,6 +700,9 @@ namespace x\markdown_filter\rows {
         return $blocks;
     }
     function status(string $row) {
+        if ("" === $row) {
+            return 0;
+        }
         return _code($row) || _raw($row) ? 0 : (_list($row) || _note($row) || _quote($row) ? 2 : 1);
     }
 }
