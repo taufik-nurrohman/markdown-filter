@@ -39,7 +39,6 @@ namespace x\markdown_filter\row {
         while (false !== ($chop = \strpbrk($content, "\\" . '`<&' . "\n"))) {
             if ("" !== ($v = \strstr($content, $chop[0], true))) {
                 $chops[] = [$v, 1];
-                $content = \substr($content, \strlen($v));
             }
             if (0 === \strpos($chop, "\\")) {
                 if ("\\" === \trim($chop)) {
@@ -48,83 +47,80 @@ namespace x\markdown_filter\row {
                     break;
                 }
                 if ("\n" === \substr($chop, 1, 1)) {
-                    $chops[] = ["\\\n", 0];
-                    $content = \substr($content, 2);
+                    $chops[] = ["\\", 0];
+                    $content = \substr($chop, 1);
                     continue;
                 }
                 $chops[] = [\substr($chop, 0, 2), 0];
-                $content = \substr($content, 2);
+                $content = \substr($chop, 2);
                 continue;
             }
             if (0 === \strpos($chop, "\n")) {
                 if (\is_string($last = $chops[\count($chops) - 1][0] ?? 0) && '  ' === \substr($last, -2)) {
                     $chops[\count($chops) - 1][0] = \substr($last, 0, -2);
-                    $chops[] = ["  \n", 0];
-                    $content = \substr($content, 1);
-                    continue;
+                    $chops[] = ['  ', 0];
                 }
                 $chops[] = ["\n", 1];
-                $content = \substr($content, 1);
+                $content = \substr($chop, 1);
                 continue;
             }
             if (0 === \strpos($chop, '<')) {
                 if (0 === \strpos($chop, '<!--') && ($n = \strpos($chop, '-->')) > 1) {
                     $chops[] = [\substr($chop, 0, $n += 3), 0];
-                    $content = \substr($content, $n);
+                    $content = \substr($chop, $n);
                     continue;
                 }
                 if (0 === \strpos($chop, '<![CDATA[') && ($n = \strpos($chop, ']]>')) > 8) {
                     $chops[] = [\substr($chop, 0, $n += 3), 0];
-                    $content = \substr($content, $n);
+                    $content = \substr($chop, $n);
                     continue;
                 }
                 if (0 === \strpos($chop, '<!') && ($n = \strpos($chop, '>')) > 2 && \preg_match('/^[a-z]/i', \substr($chop, 2))) {
                     $chops[] = [\substr($chop, 0, $n += 1), 0];
-                    $content = \substr($content, $n);
+                    $content = \substr($chop, $n);
                     continue;
                 }
                 if (0 === \strpos($chop, '<' . '?') && ($n = \strpos($chop, '?' . '>')) > 1) {
                     $chops[] = [\substr($chop, 0, $n += 2), 0];
-                    $content = \substr($content, $n);
+                    $content = \substr($chop, $n);
                     continue;
                 }
                 // <https://spec.commonmark.org/0.31.2#closing-tag>
                 if ('/' === $chop[1] && \preg_match('/^<\/[a-z][a-z\d-]*\s*>/i', $chop, $m)) {
                     $chops[] = [$m[0], 0];
-                    $content = \substr($content, \strlen($m[0]));
+                    $content = \substr($chop, \strlen($m[0]));
                     continue;
                 }
                 // <https://spec.commonmark.org/0.31.2#open-tag>
                 if (\preg_match('/^<[a-z][a-z\d-]*(?>\s+[a-z:_][\w.:-]*(?>\s*=\s*(?>"[^"]*"|\'[^\']*\'|[^\s"\'<=>`]+)?)?)*\s*\/?>/i', $chop, $m)) {
                     $chops[] = [$m[0], 0];
-                    $content = \substr($content, \strlen($m[0]));
+                    $content = \substr($chop, \strlen($m[0]));
                     continue;
                 }
                 $chops[] = ['<', 1];
-                $content = \substr($content, 1);
+                $content = \substr($chop, 1);
                 continue;
             }
             if (0 === \strpos($chop, '&') && \strpos($chop, ';') > 1 && \preg_match('/^&(?>#x[a-f\d]{1,6}|#\d{1,7}|[a-z][a-z\d]{1,31});/i', $chop, $m)) {
                 $chops[] = [$m[0], 0];
-                $content = \substr($content, \strlen($m[0]));
+                $content = \substr($chop, \strlen($m[0]));
                 continue;
             }
             if (0 === \strpos($chop, '`')) {
                 if (\preg_match('/^(`+)(?![`]).+?(?<![`])\1(?![`])/s', $chop, $m)) {
                     $chops[] = [$m[0], 0];
-                    $content = \substr($content, \strlen($m[0]));
+                    $content = \substr($chop, \strlen($m[0]));
                     continue;
                 }
                 $chops[] = [\substr($chop, 0, $n = \strspn($chop, '`')), 1];
-                $content = \substr($content, $n);
+                $content = \substr($chop, $n);
                 continue;
             }
-            $chops[] = [$chop, 1];
-            $content = \substr($content, \strlen($chop));
+            $chops[] = [$content, 1];
+            $content = "";
         }
         if ("" !== $content) {
             $chops[] = [$content, 1];
-            $content = "";
         }
         return $chops;
     }
@@ -700,9 +696,6 @@ namespace x\markdown_filter\rows {
         return $blocks;
     }
     function status(string $row) {
-        if ("" === $row) {
-            return 0;
-        }
-        return _code($row) || _raw($row) ? 0 : (_list($row) || _note($row) || _quote($row) ? 2 : 1);
+        return "" === $row || _code($row) || _raw($row) ? 0 : (_list($row) || _note($row) || _quote($row) ? 2 : 1);
     }
 }
