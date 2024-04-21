@@ -39,6 +39,7 @@ namespace x\markdown_filter\row {
         while (false !== ($chop = \strpbrk($content, "\\" . '`<&' . "\n"))) {
             if ("" !== ($v = \strstr($content, $chop[0], true))) {
                 $chops[] = [$v, 1];
+                $content = $chop;
             }
             if (0 === \strpos($chop, "\\")) {
                 if ("\\" === \trim($chop)) {
