@@ -139,7 +139,8 @@ if ('POST' === $_SERVER['REQUEST_METHOD'] && isset($_POST['comment']['content'])
         }
         return filter_row($block, function ($chop, $status) {
             if (0 === $status) {
-                if (0 === strpos($chop, '`')) {
+                $test = strspn($chop, '`');
+                if ($test > 0 && str_repeat('`', $test) === substr($chop, -$test)) {
                     return $chop; // Code span
                 }
             }
