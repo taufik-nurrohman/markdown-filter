@@ -97,7 +97,7 @@ $content = filter_rows($content, function ($block, $status) {
 echo (new ParsedownExtra)->text($content);
 ~~~
 
-The `$status` variable shows whether or not a part of the document is safe for any kind of text substitutions. For now,
+The `$status` variable shows whether a part of the document is safe or not for any kind of text substitutions. For now,
 it can have the value set to `0`, `1`, or `2`. A value of `0` means that the part of the document is generally not safe
 for any kind of text substitutions. It is typically contained in the code and raw HTML chunks. A value of `2` means that
 a block can contain other blocks, so it would be better to skip it as well, because indentation usually has a different
